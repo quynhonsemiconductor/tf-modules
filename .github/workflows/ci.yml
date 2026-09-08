@@ -46,7 +46,14 @@ jobs:
 
       - uses: terraform-linters/setup-tflint@1cf010d3c7aef302051ccdb68c14c5dc2efa34ef # v6.3.1
         with:
-          tflint_version: latest
+          # PINNED, not `latest`. tflint adds and tightens rules between
+          # releases, so `latest` means a tflint release can turn this required
+          # check red overnight on a PR that changed no terraform — the failure
+          # then looks like the PR's fault and costs someone a bisect. Every
+          # other tool in this workflow is version- or SHA-pinned; this was the
+          # one that moved on its own. Renovate keeps it current, as a visible
+          # bump rather than a silent one.
+          tflint_version: v0.64.0
 
       - name: tflint (per module)
         env:
