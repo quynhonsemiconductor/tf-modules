@@ -1,0 +1,46 @@
+# =============================================================================
+# PR title — Conventional Commits.
+#
+# This repo runs release-please (release.yml), which derives the next version
+# and the changelog entry from COMMIT MESSAGES. Under squash-merge the commit
+# message is the PR title, so an unparseable title does not fail loudly — it
+# produces a wrong version bump, or silently omits the change from the
+# changelog. This repo publishes Terraform modules consumed by infra and
+# infra-template, so a version that does not describe the change is a problem
+# for every consumer pinning it.
+#
+# WHY ITS OWN WORKFLOW rather than a job inside ci.yml: the check must re-run
+# when a title is EDITED, and listening for that action inside a heavier
+# workflow with `cancel-in-progress` is how a title edit cancels a real run and
+# replaces it with one where the expensive jobs skip — and GitHub counts a
+# skipped required check as passing. See the same file in rova/opshub for the
+# incident this is copied from.
+#
+# WHY THE ACTION AND NOT ci's REUSABLE WORKFLOW: a job that calls a reusable
+# workflow reports its check as `<caller job>/<called job>`, which would change
+# the check name and leave a ruleset requiring the old one matching nothing. A
+# required check that never reports does not fail — it blocks every merge.
+# =============================================================================
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read # required by the action's underlying semantic-pull-request step
+
+jobs:
+  pr-title:
+    # This name IS the required check. Do not rename it.
+    name: PR title (conventional commits)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # No checkout: the action reads the title from the event payload.
+      - uses: quynhonsemiconductor/ci/actions/pr-title-conventional-commits@v1
