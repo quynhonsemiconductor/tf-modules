@@ -42,6 +42,9 @@ jobs:
       blocking: true
 
   checkov:
+    # The job NAME is the required-check name on main (`checkov (IaC misconfig)`).
+    # It must not change — which is why the scan below is a COMPOSITE action and
+    # not a reusable workflow, whose check would report as `checkov / <inner>`.
     name: checkov (IaC misconfig)
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -53,26 +56,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Checkov scan
-        uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
+      # ENFORCED against a baseline: fails on NEW misconfigurations only. The
+      # pre-existing findings are recorded in modules/.checkov.baseline (burn them
+      # down over time; regenerate with --create-baseline).
+      - uses: quynhonsemiconductor/ci/actions/iac-checkov@v1
         with:
           directory: modules/
-          framework: terraform
-          quiet: true
-          output_format: cli,sarif
-          output_file_path: console,checkov.sarif
-          # ENFORCED against a baseline: fails CI on NEW misconfigurations only.
-          # The pre-existing findings are recorded in modules/.checkov.baseline
-          # (burn them down over time; regenerate with --create-baseline).
-          soft_fail: false
+          soft-fail: 'false'
           baseline: modules/.checkov.baseline
-
-      - name: Upload SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
-        with:
-          sarif_file: checkov.sarif
-        continue-on-error: true
 
   secret-scan:
     name: Secret scan (Gitleaks)
