@@ -2,7 +2,7 @@
 
 Grafana Alerting rule group for one product. Creates no dashboards, no
 datasources, no contact points — those are provisioned once, centrally, in
-`qnsc-infra/live/observability`. This module only turns a list of
+`infra/live/observability`. This module only turns a list of
 `{promql, threshold}` pairs into `grafana_rule_group` rules.
 
 ## Alongside CloudWatch Alarms, not replacing them
@@ -77,7 +77,7 @@ running ECS task. Alert-rule CRUD happens through the Grafana INSTANCE API
 (the Grafana UI's own backend), a completely different surface from the
 OTLP ingest gateway those tokens authenticate to. A stack-scoped SERVICE
 ACCOUNT token is what that surface needs — provisioned once in
-`qnsc-infra/live/observability` (`grafana_cloud_stack_service_account`),
+`infra/live/observability` (`grafana_cloud_stack_service_account`),
 never inside a product's task definition.
 
 **This token reaches a product's CI as a plain GitHub Actions secret, NOT
@@ -92,7 +92,7 @@ task credential could reach it from.
 
 This module resolves the Mimir datasource's UID itself (`data
 "grafana_data_source"`, in main.tf), from a NAME passed in. It does not take
-the UID directly. Found the hard way: qnsc-infra/live/observability
+the UID directly. Found the hard way: infra/live/observability
 originally did that lookup centrally and passed the UID down — which broke
 `tofu plan` on a fresh apply with `Error: the Grafana client is required
 for this resource`, because a `data` source (unlike a resource) can't defer

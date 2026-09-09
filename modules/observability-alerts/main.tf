@@ -5,12 +5,12 @@
 # infra-level signals (ECS task health, ALB target health) it can see
 # directly. This module is for symptoms only the app's own OTel telemetry
 # can see — DB pool contention, HTTP error rate, latency, job failure rate —
-# the same data qnsc-infra/live/observability's stack already ingests.
+# the same data infra/live/observability's stack already ingests.
 #
 # Uses a SECOND Grafana credential from observability-agent/firelens-agent's
 # OTLP push token: alert-rule CRUD happens through the Grafana INSTANCE API,
 # not the Grafana Cloud ORG API the stack itself is managed through. See
-# qnsc-infra/live/observability/main.tf's "Alerting" header comment.
+# infra/live/observability/main.tf's "Alerting" header comment.
 #
 # This module does NOT configure its own `provider "grafana"` block — the
 # CALLER (the root module) does, once, and this inherits it automatically
@@ -45,7 +45,7 @@ terraform {
 # Resolved HERE, not passed in as a UID: this `data` read against the
 # Grafana instance API is safe in this module because the inherited
 # provider's credentials are always a plain, already-known value by apply
-# time (a CI secret) — unlike qnsc-infra/live/observability, where the
+# time (a CI secret) — unlike infra/live/observability, where the
 # service account token that provider would authenticate with is still
 # being created in the SAME plan on a fresh apply, and a data source can't
 # defer to apply the way a resource can. See prometheus_datasource_name's

@@ -101,7 +101,7 @@ variable "cache_cluster_id" {
     `cluster_id` output (node mode only). Used only as an alarm DIMENSION value;
     see `enable_cache_alarms` for whether the alarms are created at all.
 
-    Deliberately NOT wired for a SHARED cache node (rally develop, qnsc-infra
+    Deliberately NOT wired for a SHARED cache node (rally develop, infra
     live/runtime-dev's module.shared_cache): the node serves more than one product,
     so an alarm named after just one of them would misattribute exactly like the
     ALB-wide latency alarm did before it was scoped per target group (see

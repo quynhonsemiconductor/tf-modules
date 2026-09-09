@@ -7,7 +7,7 @@
 #   - <product>-github-infra-plan     read-only tofu plan on infra PRs
 #   - <product>-github-infra-apply    tofu apply on infra main branch
 #
-# The GitHub OIDC provider itself is an account singleton owned by qnsc-infra;
+# The GitHub OIDC provider itself is an account singleton owned by infra;
 # this module only consumes its ARN (never creates it).
 # =============================================================================
 
@@ -32,7 +32,7 @@ locals {
   #     trust boundary matches the environment reviewer gate. A branch/PR with no
   #     `environment:` in its job emits sub `...:ref:...`/`...:pull_request`, which
   #     is NOT in this list → cannot assume apply, regardless of branch protection.
-  # Both are overridable for products whose environments differ (e.g. qnsc-infra
+  # Both are overridable for products whose environments differ (e.g. infra
   # uses bootstrap/security-baseline).
   infra_plan_subjects_named = var.infra_plan_subjects != null ? var.infra_plan_subjects : [
     "${local.infra_sub}:pull_request",

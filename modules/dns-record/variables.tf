@@ -10,7 +10,7 @@ variable "enabled" {
 
 variable "zone_id" {
   type        = string
-  description = "Cloudflare Zone ID (e.g. the qnsc.vn zone). Typically read from qnsc-infra bootstrap remote state."
+  description = "Cloudflare Zone ID (e.g. the qnsc.vn zone). Typically read from infra bootstrap remote state."
 }
 
 variable "name" {

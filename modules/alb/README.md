@@ -2,7 +2,7 @@
 
 Application Load Balancer with an HTTPS (:443) listener and an HTTP (:80) →
 HTTPS redirect. In the Option A shared-runtime layout this is created **once per
-env** (in `qnsc-infra/live/runtime-*`) and shared by every product via
+env** (in `infra/live/runtime-*`) and shared by every product via
 host-header listener rules — services attach their own forward rules to the
 exported `https_listener_arn`.
 

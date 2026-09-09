@@ -60,7 +60,7 @@ ECS reads one key out of a JSON secret natively, and `secret_arns` returns that 
 { name = "COOKIE_SECRET", secret_arn = module.secrets.secret_arns["cookie-secret"] }
 ```
 
-What is preserved: a bundled key that is absent fails the task exactly as an empty secret does, so "unpopulated" still means a failed deploy and a rollback rather than a silent downgrade. The qnsc-ci preflight already rejoins the first seven ARN fields before probing, so it needs no change.
+What is preserved: a bundled key that is absent fails the task exactly as an empty secret does, so "unpopulated" still means a failed deploy and a rollback rather than a silent downgrade. The ci preflight already rejoins the first seven ARN fields before probing, so it needs no change.
 
 What is given up: per-secret IAM and per-secret rotation — one key rotating rewrites the object as a new version. Keep a value out of the bundle if it needs its own resource policy, its own rotation schedule, or a narrower reader than the rest.
 

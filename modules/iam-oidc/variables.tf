@@ -11,7 +11,7 @@ variable "github_org" {
 
 variable "oidc_provider_arn" {
   type        = string
-  description = "ARN of the GitHub OIDC provider (an account singleton from qnsc-infra)."
+  description = "ARN of the GitHub OIDC provider (an account singleton from infra)."
 }
 
 variable "environments" {
@@ -72,7 +72,7 @@ variable "infra_apply_subjects" {
     OIDC `sub` claims allowed to assume the infra-apply role. Defaults to the
     shared/develop/production GitHub Environments of the infra repo, so a bare
     branch or PR can never assume it. Override for products with different
-    environment names (e.g. qnsc-infra uses ["...:environment:bootstrap",
+    environment names (e.g. infra uses ["...:environment:bootstrap",
     "...:environment:security-baseline"]).
   EOT
 }
