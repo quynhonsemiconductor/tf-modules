@@ -13,11 +13,12 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  TOFU_VERSION: '1.9.1'
-
 jobs:
   validate:
+    # The job NAME is the required-check name on main. It must not change, which
+    # is also why the gates below moved into a COMPOSITE action rather than a
+    # reusable workflow: a reusable would report this as `validate / <inner job>`
+    # and the required check `fmt · validate · tflint` would never report again.
     name: fmt · validate · tflint
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -26,48 +27,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
+      # Modules carry no backend, so validate resolves providers with
+      # `init -backend=false` and needs no cloud credentials. infra cannot do
+      # this — its validate needs a real backend and runs beside `tofu plan`.
+      - uses: quynhonsemiconductor/ci/actions/iac-lint@v1
         with:
-          tofu_version: ${{ env.TOFU_VERSION }}
-
-      - name: tofu fmt (check)
-        run: tofu fmt -check -recursive
-
-      # Validate each module independently. Modules have no backend, so
-      # `tofu init -backend=false` is enough to resolve providers for validation.
-      - name: tofu validate (per module)
-        run: |
-          set -euo pipefail
-          for dir in modules/*/; do
-            echo "── validating $dir ──"
-            tofu -chdir="$dir" init -backend=false -input=false >/dev/null
-            tofu -chdir="$dir" validate
-          done
-
-      - uses: terraform-linters/setup-tflint@1cf010d3c7aef302051ccdb68c14c5dc2efa34ef # v6.3.1
-        with:
-          # PINNED, not `latest`. tflint adds and tightens rules between
-          # releases, so `latest` means a tflint release can turn this required
-          # check red overnight on a PR that changed no terraform — the failure
-          # then looks like the PR's fault and costs someone a bisect. Every
-          # other tool in this workflow is version- or SHA-pinned; this was the
-          # one that moved on its own. Renovate keeps it current, as a visible
-          # bump rather than a silent one.
-          tflint_version: v0.64.0
-
-      - name: tflint (per module)
-        env:
-          # tflint --init downloads the AWS ruleset from the GitHub releases API.
-          # Without a token that request is ANONYMOUS, so it shares the runner
-          # IP's 60/hour limit with every other job on that host and fails at
-          # random with "403 API rate limit exceeded" — a required check that is
-          # flaky by construction rather than by anything in this repo. Observed
-          # on PR #124. The token raises it to 5000/hour for this repo.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          tflint --init
-          for dir in modules/*/; do
-            echo "── tflint $dir ──"
-            tflint --chdir="$dir"
-          done
+          tofu-version: '1.9.1'
+          fmt: 'true'
+          validate: 'true'
+          tflint: 'true'
+          dirs: 'modules/*/'
+          tflint-version: v0.64.0
+          # Raises tflint --init's ruleset download off the runner IP's shared
+          # 60/hour anonymous limit. Without it the check is flaky by
+          # construction — see the action's own input description.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
