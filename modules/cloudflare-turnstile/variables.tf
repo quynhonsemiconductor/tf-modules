@@ -1,6 +1,6 @@
 variable "account_id" {
   type        = string
-  description = "Cloudflare account ID that owns the Turnstile widget. Typically read from qnsc-infra bootstrap remote state."
+  description = "Cloudflare account ID that owns the Turnstile widget. Typically read from infra bootstrap remote state."
 }
 
 variable "name" {

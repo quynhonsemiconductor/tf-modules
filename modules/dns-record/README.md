@@ -2,7 +2,7 @@
 
 A single Cloudflare DNS record on the `qnsc.vn` zone. Used to point product
 hostnames (API, web) at their ALB / CloudFront / Pages target. The zone ID is
-typically read from `qnsc-infra` bootstrap remote state.
+typically read from `infra` bootstrap remote state.
 
 `allow_overwrite` defaults **true** so a rebuild after a `state rm` teardown
 (which leaves the live record orphaned) cleanly adopts and repoints the record

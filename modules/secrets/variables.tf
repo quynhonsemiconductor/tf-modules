@@ -39,7 +39,7 @@ variable "bundle_name" {
     Store — a container can exist holding NO value, so "unpopulated" is unambiguous and
     fails a boot rather than degrading silently — survives per KEY: ECS fails the task
     when a referenced JSON key is absent, exactly as it does for an empty secret. The
-    deploy preflight in qnsc-ci already rejoins the first seven ARN fields before probing,
+    deploy preflight in ci already rejoins the first seven ARN fields before probing,
     so it keeps verifying the container is non-empty with no change.
 
     WHAT IS GIVEN UP. Per-secret IAM (see `secret_iam_arns`) and per-secret rotation: one

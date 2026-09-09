@@ -1,5 +1,5 @@
 variable "product" {
-  description = "Product slug. Stamped as the `product` label on every rule this module creates — the same value observability-agent's `product` var gets, and what the shared notification policy in qnsc-infra/live/observability would route on if/when per-product routing is added."
+  description = "Product slug. Stamped as the `product` label on every rule this module creates — the same value observability-agent's `product` var gets, and what the shared notification policy in infra/live/observability would route on if/when per-product routing is added."
   type        = string
 }
 
@@ -10,13 +10,13 @@ variable "env" {
 
 variable "prometheus_datasource_name" {
   description = <<-EOT
-    qnsc-infra/live/observability's `alerting_prometheus_datasource_name`
+    infra/live/observability's `alerting_prometheus_datasource_name`
     output. A NAME, not a UID: this module looks up the UID itself (see
     main.tf) rather than taking it as an input, because that lookup is a
     `data` read against the Grafana instance API — safe to do HERE, where
     the inherited provider's credentials are always a plain, already-known
     value by apply time (a CI secret, not a same-run resource attribute),
-    but NOT safe in qnsc-infra/live/observability itself, where the service
+    but NOT safe in infra/live/observability itself, where the service
     account token that read would authenticate with is still being created
     in the SAME plan on a fresh apply.
   EOT
@@ -24,7 +24,7 @@ variable "prometheus_datasource_name" {
 }
 
 variable "folder_uid" {
-  description = "qnsc-infra/live/observability's `alerting_folder_uid` output — the shared folder every product's rule groups live under."
+  description = "infra/live/observability's `alerting_folder_uid` output — the shared folder every product's rule groups live under."
   type        = string
 }
 

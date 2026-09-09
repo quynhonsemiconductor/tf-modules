@@ -7,7 +7,7 @@
 # image, which env vars, whether it seeds, which secrets) is passed in by the
 # caller, because that's product/app-specific and must not be baked into shared
 # infra. The task is never run as a service; a deploy pipeline triggers it with
-# `aws ecs run-task` (see the qnsc-ci ecs-run-task / run-db-migration actions).
+# `aws ecs run-task` (see the ci ecs-run-task / run-db-migration actions).
 # =============================================================================
 
 resource "aws_cloudwatch_log_group" "this" {

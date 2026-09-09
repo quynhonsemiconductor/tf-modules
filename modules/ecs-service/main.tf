@@ -208,7 +208,7 @@ resource "aws_iam_role_policy" "task_secrets" {
 #
 # Two things register revisions of this family:
 #   Terraform  owns the BASELINE — image, environment, secrets, sizing, architecture.
-#   The deploy  (qnsc-ci backend-deploy) registers a new revision per release and points
+#   The deploy  (ci backend-deploy) registers a new revision per release and points
 #              the service at it with `ecs update-service`.
 #
 # So the sequence is: Terraform writes revision N, a deploy writes N+1, and Terraform's

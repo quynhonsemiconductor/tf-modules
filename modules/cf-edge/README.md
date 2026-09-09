@@ -5,7 +5,7 @@ Cloudflare **zone-level edge governance** for the shared `qnsc.vn` zone: WAF
 
 Because one zone fronts every product, this is an **account/zone-level** concern
 (not per-product). The caller configures the `cloudflare` provider and passes
-the `zone_id` (read from `qnsc-infra` bootstrap remote state — the single source
+the `zone_id` (read from `infra` bootstrap remote state — the single source
 of truth, same pattern as `dns-record`).
 
 ## Plan-tier safety

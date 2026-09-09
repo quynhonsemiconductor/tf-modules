@@ -3,7 +3,7 @@
 #
 # One qnsc.vn zone fronts every product, so this is an ACCOUNT/ZONE-level
 # stack (not per-product): the caller configures the cloudflare provider and
-# passes the zone_id (read from qnsc-infra bootstrap remote state, the single
+# passes the zone_id (read from infra bootstrap remote state, the single
 # source of truth — same pattern as dns-record).
 #
 # Three independent rule phases, each created only when its input is non-empty

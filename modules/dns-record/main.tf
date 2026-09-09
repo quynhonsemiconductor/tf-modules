@@ -3,7 +3,7 @@
 #
 # One qnsc.vn zone serves every product, so the zone_id + API token are
 # account-level inputs (the token via the cloudflare provider the CALLER
-# configures; the zone_id read from qnsc-infra bootstrap's remote state).
+# configures; the zone_id read from infra bootstrap's remote state).
 # The caller passes just the subdomain + target — the "which product/env"
 # specifics — while the record shape (CNAME → CloudFront, etc.) lives here.
 #

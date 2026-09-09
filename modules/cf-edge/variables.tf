@@ -1,6 +1,6 @@
 variable "zone_id" {
   type        = string
-  description = "Cloudflare Zone ID (the qnsc.vn zone). Read from qnsc-infra bootstrap remote state."
+  description = "Cloudflare Zone ID (the qnsc.vn zone). Read from infra bootstrap remote state."
 }
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────

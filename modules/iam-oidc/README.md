@@ -3,7 +3,7 @@
 Creates the full GitHub Actions OIDC role set for a product — per-environment
 app deploy roles, an ECR push role, and the infra plan/apply roles. All role
 names are prefixed by `var.product`. The OIDC provider itself is an account
-singleton owned by `qnsc-infra`; this module only consumes its ARN.
+singleton owned by `infra`; this module only consumes its ARN.
 
 Roles created:
 
@@ -58,7 +58,7 @@ module "iam_oidc" {
 | :--- | :--- | :------ | :---------- |
 | `product` | `string` | — | Role name prefix |
 | `github_org` | `string` | `quynhonsemiconductor` | GitHub org |
-| `oidc_provider_arn` | `string` | — | OIDC provider ARN (from qnsc-infra) |
+| `oidc_provider_arn` | `string` | — | OIDC provider ARN (from infra) |
 | `environments` | `map(object)` | — | env → `{ allowed_subjects }` |
 | `app_repo_names` | `list(string)` | — | Repos allowed to assume ecr-push |
 | `infra_repo_name` | `string` | — | The `*-infra` repo name |

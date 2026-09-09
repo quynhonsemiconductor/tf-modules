@@ -3,7 +3,7 @@
 #
 # The shared quynhonsemiconductor/ci security suite is app/container oriented (Semgrep
 # TS/Node packs, Trivy image CVEs) and is the wrong tool for pure OpenTofu, so
-# this repo runs the IaC-native pair instead (same shape as qnsc-infra):
+# this repo runs the IaC-native pair instead (same shape as infra):
 #   • Checkov  — Terraform/OpenTofu misconfig scan over modules/. ENFORCED
 #                against a baseline (fails CI on NEW misconfigurations only).
 #   • Gitleaks — committed-secret scan.
