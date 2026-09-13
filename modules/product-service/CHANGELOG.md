@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/quynhonsemiconductor/tf-modules/compare/product-service-v0.1.0...product-service-v0.2.0) (2026-09-13)
+
+
+### Features
+
+* **product-service:** add the per-service composition module ([#137](https://github.com/quynhonsemiconductor/tf-modules/issues/137)) ([5bafd07](https://github.com/quynhonsemiconductor/tf-modules/commit/5bafd07bf0945acfe676e51ae3969db961ed73b2))
+
 ## 0.1.0
 
 Initial, **unreleased and unconsumed**. Pre-1.0 deliberately: no product has adopted it, so
