@@ -19,6 +19,23 @@ variable "engine_version" {
   description = "Postgres major version (e.g. \"17\", \"18\")."
 }
 
+variable "auto_minor_version_upgrade" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    Let AWS apply Postgres MINOR upgrades during `maintenance_window`.
+
+    `true` (the default, and the previously hardcoded behaviour) keeps you on supported patch
+    levels without anyone remembering to act, which is the right default for most callers.
+
+    Set it FALSE when the instance is single-AZ AND serves production. With `multi_az = true`
+    AWS upgrades the standby and fails over, so the impact is a connection reset; with
+    `multi_az = false` there is no standby, so the only instance restarts unattended inside
+    the maintenance window. Turning this off makes patching a scheduled human action instead
+    — which is only an improvement if someone actually schedules it, so record the owner.
+  EOT
+}
+
 variable "instance_class" {
   type        = string
   description = "RDS instance class (e.g. db.t4g.medium, db.r7g.large)."
