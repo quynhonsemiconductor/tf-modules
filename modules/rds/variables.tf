@@ -105,6 +105,33 @@ variable "enable_parameter_group" {
   description = "Create a parameter group with pg_stat_statements + query/connection logging."
 }
 
+variable "snapshot_identifier" {
+  type    = string
+  default = null
+
+  description = <<-EOT
+    Restore this instance FROM an existing snapshot instead of creating an empty database.
+    Identifier or ARN of a manual or automated DB snapshot. Null (the default) creates a new
+    empty database, which is what every existing caller does.
+
+    HONOURED ONLY AT CREATE TIME. The argument sits under `ignore_changes`, because the AWS
+    provider marks it ForceNew: without that, bumping this to a newer snapshot — or clearing
+    it once a restore is finished — would destroy and rebuild a live database as a side
+    effect of editing a string. So this cannot retro-restore an existing instance; pair it
+    with `tofu apply -replace=...` when a rebuild is genuinely intended.
+
+    THE MASTER PASSWORD IS NOT PRESERVED. A restore keeps the password baked into the
+    snapshot and arrives with no managed secret; this module sets
+    `manage_master_user_password = true`, so the restored instance gets a BRAND NEW
+    Secrets Manager secret with a NEW ARN. Every consumer of the old ARN must be reconciled
+    in the same apply. The endpoint changes too — the host contains an instance-specific
+    component, so `<id>.<something>.rds.amazonaws.com` is not stable across a rebuild.
+
+    `username` and `db_name` come from the snapshot and cannot be overridden. Restoring an
+    instance's own snapshot is therefore clean, since both already match; restoring one
+    database's snapshot under another's config would leave a permanent diff.
+  EOT
+}
 variable "log_min_duration_ms" {
   type        = number
   default     = 1000

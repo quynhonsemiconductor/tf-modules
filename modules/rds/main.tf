@@ -8,6 +8,13 @@ locals {
   # One list, used by both the instance's export setting and the log groups below, so
   # adding a log type cannot enable the export while leaving its group unmanaged.
   exported_logs = ["postgresql", "upgrade"]
+
+  # Single source of truth for whether a final snapshot is taken, consumed by both
+  # skip_final_snapshot and final_snapshot_identifier. See the comment at those arguments
+  # for the failure this prevents: the two used to be derived from different conditions and
+  # could disagree, removing the safety snapshot exactly when a protected instance was
+  # being replaced.
+  skip_final_snapshot = var.skip_final_snapshot != null ? var.skip_final_snapshot : !var.deletion_protection
 }
 
 resource "aws_db_subnet_group" "this" {
@@ -81,7 +88,28 @@ resource "aws_db_instance" "this" {
   db_name  = var.db_name
   username = var.master_username
   # RDS-managed master password: auto-rotated in Secrets Manager, never in state.
+  #
+  # NOT PRESERVED BY A SNAPSHOT RESTORE. Measured 2026-09-13: restoring rova-prod's
+  # snapshot produced an instance with NO MasterUserSecret at all — the restore keeps the
+  # password baked into the snapshot. RestoreDBInstanceFromDBSnapshot does accept
+  # ManageMasterUserPassword, so a restore through this module re-enables it and mints a
+  # BRAND NEW secret with a NEW ARN. Anything reading the old ARN — task definitions, in
+  # particular — must be reconciled in the same apply, or the service starts and fails
+  # authentication against a secret that no longer governs the instance.
   manage_master_user_password = true
+
+  # Restore this instance FROM an existing snapshot instead of creating an empty database.
+  #
+  # `username` and `db_name` above come from the snapshot on a restore and cannot be
+  # changed by it. That is harmless for the intended use — replacing an instance with a
+  # restore of ITS OWN snapshot, where both values already match — but restoring one
+  # database's snapshot under another's config would leave a permanent diff.
+  #
+  # Under `ignore_changes` below, so it is honoured only when the instance is created.
+  # Without that, `snapshot_identifier` is ForceNew: bumping it to a newer snapshot, or
+  # clearing it once the restore is done, would DESTROY AND REBUILD a live database as a
+  # side effect of editing a string.
+  snapshot_identifier = var.snapshot_identifier
 
   db_subnet_group_name   = aws_db_subnet_group.this.name
   vpc_security_group_ids = [var.security_group_id]
@@ -126,8 +154,23 @@ resource "aws_db_instance" "this" {
   # true at teardown (via -var) to bypass a stale "<id>-final" snapshot that a
   # prior partial/failed destroy left behind (that collision blocked a teardown
   # in practice) — cheaper/safer than the module hardcoding the behavior.
-  skip_final_snapshot       = var.skip_final_snapshot != null ? var.skip_final_snapshot : !var.deletion_protection
-  final_snapshot_identifier = var.deletion_protection ? "${var.identifier}-final" : null
+  #
+  # BOTH SETTINGS NOW DERIVE FROM ONE LOCAL, because they used to be able to disagree and
+  # the disagreement was silent in the dangerous direction. `final_snapshot_identifier` was
+  # gated on `deletion_protection` while `skip_final_snapshot` was gated on it only as a
+  # DEFAULT. So replacing a protected production instance — which requires turning
+  # protection off first — took the safety snapshot away as a side effect, and asking for it
+  # back with an explicit `skip_final_snapshot = false` failed the plan instead, because the
+  # identifier was still null. Found on 2026-09-13 while planning rova-prod's subnet-group
+  # rebuild, i.e. in the exact situation the safety net exists for.
+  skip_final_snapshot       = local.skip_final_snapshot
+  final_snapshot_identifier = local.skip_final_snapshot ? null : "${var.identifier}-final"
+
+  lifecycle {
+    # Create-time only: see snapshot_identifier above for why letting this change is
+    # equivalent to letting an edit destroy a database.
+    ignore_changes = [snapshot_identifier]
+  }
 
   tags = merge(var.tags, { Name = var.identifier })
 }
