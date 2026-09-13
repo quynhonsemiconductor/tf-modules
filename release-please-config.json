@@ -68,11 +68,17 @@
     "modules/pages-web": {
       "component": "pages-web"
     },
+    "modules/product-service": {
+      "component": "product-service"
+    },
     "modules/rds": {
       "component": "rds"
     },
     "modules/secrets": {
       "component": "secrets"
+    },
+    "modules/tunnel-agent": {
+      "component": "tunnel-agent"
     },
     "modules/waf": {
       "component": "waf"

@@ -95,7 +95,20 @@ resource "aws_db_instance" "this" {
   backup_window           = "03:00-04:00" # UTC
   maintenance_window      = "Mon:04:30-Mon:06:00"
 
-  auto_minor_version_upgrade = true
+  # WAS HARDCODED `true` until 2026-09-12, with no way for a caller to opt out. Exposed as a
+  # variable because the blast radius depends on something this module cannot see: whether
+  # the instance is Multi-AZ.
+  #
+  # On a Multi-AZ instance AWS applies a minor upgrade to the standby, fails over, then
+  # upgrades the old primary — a brief connection reset. On a SINGLE-AZ instance there is no
+  # standby, so the only instance restarts inside the maintenance window above. Every
+  # production database in this org is currently `multi_az = false` (a documented cost
+  # decision), which means automatic minor upgrades are unattended restarts of the only copy.
+  #
+  # The default stays `true`, so this change is a no-op for every existing caller and the
+  # plan is empty. It exists so a caller running single-AZ production can make the tradeoff
+  # deliberately rather than inherit it.
+  auto_minor_version_upgrade = var.auto_minor_version_upgrade
   apply_immediately          = false
   copy_tags_to_snapshot      = true
 
