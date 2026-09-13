@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/quynhonsemiconductor/tf-modules/compare/tunnel-agent-v1.0.0...tunnel-agent-v1.1.0) (2026-09-13)
+
+
+### Features
+
+* **product-service:** add the per-service composition module ([#137](https://github.com/quynhonsemiconductor/tf-modules/issues/137)) ([5bafd07](https://github.com/quynhonsemiconductor/tf-modules/commit/5bafd07bf0945acfe676e51ae3969db961ed73b2))
+* **tunnel-agent:** cloudflared sidecar so a task can serve without an ALB ([#50](https://github.com/quynhonsemiconductor/tf-modules/issues/50)) ([edc14e0](https://github.com/quynhonsemiconductor/tf-modules/commit/edc14e0d12010cb5bcf13dffc268364e6ba62ad3))
+
 ## 1.0.0
 
 Initial release: `cloudflared` sidecar container definition for an ECS task, replacing

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.0](https://github.com/quynhonsemiconductor/tf-modules/compare/rds-v2.1.2...rds-v2.2.0) (2026-09-13)
+
+
+### Features
+
+* **product-service:** add the per-service composition module ([#137](https://github.com/quynhonsemiconductor/tf-modules/issues/137)) ([5bafd07](https://github.com/quynhonsemiconductor/tf-modules/commit/5bafd07bf0945acfe676e51ae3969db961ed73b2))
+* **rds:** restore from a snapshot, and stop losing the final snapshot ([#139](https://github.com/quynhonsemiconductor/tf-modules/issues/139)) ([a190d5c](https://github.com/quynhonsemiconductor/tf-modules/commit/a190d5c736b911be51071a859ff26eed5b3078bd))
+
 ## [2.1.2](https://github.com/QNSC-VN/qnsc-tf-modules/compare/rds-v2.1.1...rds-v2.1.2) (2026-08-16)
 
 
