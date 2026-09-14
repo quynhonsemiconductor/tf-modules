@@ -137,8 +137,25 @@ resource "aws_db_instance" "this" {
   # plan is empty. It exists so a caller running single-AZ production can make the tradeoff
   # deliberately rather than inherit it.
   auto_minor_version_upgrade = var.auto_minor_version_upgrade
-  apply_immediately          = false
-  copy_tags_to_snapshot      = true
+  # WAS HARDCODED `false` from this module's first commit, with no comment and no way for a
+  # caller to choose. `false` means AWS QUEUES a modification for the maintenance window
+  # (`Mon:04:30-Mon:06:00` above) instead of performing it, which is the right default for
+  # production — nobody wants an unplanned restart — and a trap everywhere else, because
+  # OpenTofu reports the apply as SUCCESSFUL while the change has not happened.
+  #
+  # That gap bit this organisation three times in two days:
+  #
+  #   * rova-prod's parameter group sat `pending-reboot` for a week while six applies each
+  #     reported success
+  #   * qnsc-kb-develop was resized to db.t4g.small on 2026-09-14 and stayed on
+  #     db.t4g.micro, the change parked in PendingModifiedValues until the following Monday
+  #   * both were found only by querying AWS directly, never by reading a plan
+  #
+  # Default stays `false`, so this is a no-op for every existing caller and the plan is
+  # empty. It exists so develop — where a restart costs nothing — can ask for a change to
+  # actually take effect, rather than silently deferring it for six days.
+  apply_immediately     = var.apply_immediately
+  copy_tags_to_snapshot = true
 
   performance_insights_enabled          = true
   performance_insights_retention_period = 7 # free tier
