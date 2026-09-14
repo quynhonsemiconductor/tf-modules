@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/quynhonsemiconductor/tf-modules/compare/rds-v2.2.0...rds-v2.3.0) (2026-09-14)
+
+
+### Features
+
+* **rds:** let callers apply changes immediately ([#142](https://github.com/quynhonsemiconductor/tf-modules/issues/142)) ([8dd8e3c](https://github.com/quynhonsemiconductor/tf-modules/commit/8dd8e3cd3e72cacbcf6424148c75e99411c5f4ed))
+
 ## [2.2.0](https://github.com/quynhonsemiconductor/tf-modules/compare/rds-v2.1.2...rds-v2.2.0) (2026-09-13)
 
 
