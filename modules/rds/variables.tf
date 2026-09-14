@@ -105,6 +105,26 @@ variable "enable_parameter_group" {
   description = "Create a parameter group with pg_stat_statements + query/connection logging."
 }
 
+variable "apply_immediately" {
+  type    = bool
+  default = false
+
+  description = <<-EOT
+    Apply modifications at once instead of queueing them for the maintenance window.
+
+    `false` (the default) is correct for production: a resize or parameter change waits for
+    `Mon:04:30-Mon:06:00` rather than restarting the instance under load.
+
+    It is the wrong default for develop, and quietly so. With `false`, OpenTofu reports an
+    apply as SUCCESSFUL while AWS holds the change in `PendingModifiedValues` — so state,
+    plan and reality disagree and nothing surfaces it. qnsc-kb-develop was resized on
+    2026-09-14 and was still running the old instance class afterwards; the only way to see
+    that was `describe-db-instances`.
+
+    Set `true` where a restart is free. Leave `false` where it is not.
+  EOT
+}
+
 variable "snapshot_identifier" {
   type    = string
   default = null
