@@ -16,7 +16,7 @@ copy of the first.
 
 ```hcl
 module "product" {
-  source = "git::https://github.com/quynhonsemiconductor/tf-modules.git//modules/product-profile?ref=product-profile-v1.0.0"
+  source = "git::https://github.com/quynhonsemiconductor/tf-modules.git//modules/product-profile?ref=product-profile-v0.1.0"
 
   product = "kb"        # short slug — NOT qnsc-kb (§7c)
   env     = "prod"      # dev | prod — never develop/production (§7c)
