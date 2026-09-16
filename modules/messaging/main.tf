@@ -36,6 +36,14 @@ resource "aws_sqs_queue" "main" {
 }
 
 # ── Queue policies: allow SNS topics under this prefix to publish ─────────────
+#
+# The account is pinned. `arn:aws:sns:*:*:<prefix>-*` matched a topic of that name
+# in ANY AWS account, which is the confused-deputy shape checkov's CKV_AWS_168
+# names: anyone able to create `qnsc-prod-rova-email-bounce` in their own account
+# could publish into these queues. Nothing in this estate is cross-account, so
+# pinning costs nothing and closes it.
+data "aws_caller_identity" "current" {}
+
 resource "aws_sqs_queue_policy" "main" {
   for_each = var.create_queue_policies ? aws_sqs_queue.main : {}
 
@@ -51,7 +59,7 @@ resource "aws_sqs_queue_policy" "main" {
         Action    = "sqs:SendMessage"
         Resource  = each.value.arn
         Condition = {
-          ArnLike = { "aws:SourceArn" = "arn:aws:sns:*:*:${var.prefix}-*" }
+          ArnLike = { "aws:SourceArn" = "arn:aws:sns:*:${data.aws_caller_identity.current.account_id}:${var.prefix}-*" }
         }
       }
     ]

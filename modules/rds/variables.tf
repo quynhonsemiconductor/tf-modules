@@ -56,6 +56,38 @@ variable "multi_az" {
   default = false
 }
 
+variable "performance_insights_kms_key_arn" {
+  type        = string
+  default     = ""
+  description = <<-EOT
+    CMK for Performance Insights data. Empty uses the AWS-managed key.
+
+    CREATION-TIME ONLY. RDS rejects a change to this on a live instance, so a
+    non-empty value belongs on instances this module is about to create — not on
+    one it already made.
+  EOT
+}
+
+variable "iam_database_authentication" {
+  type        = bool
+  default     = false
+  description = <<-EOT
+    Allow `rds-db:connect` to mint a 15-minute auth token instead of using a
+    password. Additive: password authentication keeps working, so turning this on
+    changes nothing for a caller that does not use it.
+
+    DEFAULT FALSE on purpose. The existing ECS estate authenticates with a
+    password out of Secrets Manager, and flipping the default would put an
+    unrequested instance modification in the next plan of every stack that bumps
+    this module. The EKS platform sets it true — §8 chose IAM auth there, and a
+    role granted `rds_iam` plus an IRSA policy granting `rds-db:connect` still
+    cannot connect while the instance refuses tokens.
+
+    A role must also be granted `rds_iam` inside the database; this flag alone
+    does nothing.
+  EOT
+}
+
 variable "deletion_protection" {
   type    = bool
   default = false

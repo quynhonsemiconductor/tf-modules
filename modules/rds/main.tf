@@ -74,6 +74,21 @@ resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
 }
 
 resource "aws_db_instance" "this" {
+  # Three decisions this estate has already made, recorded here rather than in
+  # .checkov.baseline so they are visible where someone changes the resource.
+  # All three were baselined for the existing callers already; naming them keeps
+  # the reason attached to the code.
+  #
+  # checkov:skip=CKV_AWS_157: Multi-AZ is a per-caller VALUE (var.multi_az), and
+  #   §5 spends the $40 on restore granularity instead. See var.apply_immediately's
+  #   description for what single-AZ costs at maintenance time.
+  # checkov:skip=CKV_AWS_118: Enhanced Monitoring bills per instance for OS metrics
+  #   that go to CloudWatch, and §9 sends telemetry to Grafana Cloud. Callers that
+  #   want it set monitoring_interval; the module wires the role either way.
+  # checkov:skip=CKV2_AWS_30: §5d answers "the database is slow" with
+  #   pg_stat_statements and a Grafana panel of top queries by total time, grouped
+  #   by role. Query logging to CloudWatch would be a second, costlier copy of
+  #   that answer.
   identifier     = var.identifier
   engine         = "postgres"
   engine_version = var.engine_version
@@ -119,6 +134,8 @@ resource "aws_db_instance" "this" {
   multi_az            = var.multi_az
   deletion_protection = var.deletion_protection
 
+  iam_database_authentication_enabled = var.iam_database_authentication
+
   backup_retention_period = var.backup_retention_days
   backup_window           = "03:00-04:00" # UTC
   maintenance_window      = "Mon:04:30-Mon:06:00"
@@ -159,6 +176,14 @@ resource "aws_db_instance" "this" {
 
   performance_insights_enabled          = true
   performance_insights_retention_period = 7 # free tier
+
+  # The same CMK that encrypts storage, when one is passed. Set at CREATION only:
+  # RDS will not change this key on a live instance — Performance Insights has to
+  # be disabled and re-enabled — so existing instances keep the AWS-managed key
+  # and new ones get the CMK. That is why the default is null rather than a
+  # blanket switch to var.kms_key_arn, which would put a failing modification in
+  # the next plan of every stack that bumps this module.
+  performance_insights_kms_key_id = var.performance_insights_kms_key_arn != "" ? var.performance_insights_kms_key_arn : null
 
   monitoring_interval = var.monitoring_interval
   monitoring_role_arn = var.monitoring_interval > 0 ? aws_iam_role.enhanced_monitoring[0].arn : null
