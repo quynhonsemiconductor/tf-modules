@@ -1,5 +1,12 @@
 # Changelog
 
+## SUPERSEDED — 2026-09-16
+
+Not adopted, and will not be. §17 retires the ECS estate, so migrating three
+products onto this module means deleting it afterwards. `product-profile` is the
+same consolidation for EKS and is the one being adopted. Stays at 0.x, unconsumed,
+deleted with ECS. See the README.
+
 ## [0.2.0](https://github.com/quynhonsemiconductor/tf-modules/compare/product-service-v0.1.0...product-service-v0.2.0) (2026-09-13)
 
 

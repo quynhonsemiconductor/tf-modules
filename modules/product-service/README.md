@@ -1,5 +1,26 @@
 # product-service
 
+> **SUPERSEDED — do not adopt. Unconsumed, and staying that way.**
+>
+> This module was extracted to collapse the three per-product
+> `infra/modules/stack` copies (rova 4,270 lines, opshub 3,508, qnsc-kb 1,802 —
+> one pattern, three times). That duplication is real; this is no longer the
+> answer to it.
+>
+> §17 of the Kubernetes platform design **retires the ECS estate**. Adopting this
+> means renaming resources in state, writing `moved{}` blocks and proving a
+> zero-diff plan for three products — and then deleting the module when EKS lands.
+> `infra/docs/product-service-extraction.md` is marked SUPERSEDED for that reason.
+>
+> **Use [`product-profile`](../product-profile) instead.** It is the same
+> consolidation for the EKS runtime and is the one being adopted, one product at a
+> time.
+>
+> This module stays at 0.x, unconsumed, and is deleted with the ECS estate. It is
+> not deleted now because the ECS estate is still serving production, and a module
+> nothing calls costs nothing to keep.
+
+
 One ECS service plus the sidecars and ingress that always accompany it. Wraps
 [`ecs-service`](../ecs-service), [`observability-agent`](../observability-agent),
 [`firelens-agent`](../firelens-agent), [`tunnel-agent`](../tunnel-agent) and
