@@ -55,12 +55,13 @@ resource "aws_ecr_lifecycle_policy" "repos" {
       # rally-api, zero carry a release tag.
       {
         rulePriority = 2
-        description  = "Keep the last ${var.keep_release_count} release (${var.release_tag_prefix}*) images"
+        description  = "Expire release (${var.release_tag_prefix}*) images older than ${var.release_retention_days} days"
         selection = {
           tagStatus     = "tagged"
           tagPrefixList = [var.release_tag_prefix]
-          countType     = "imageCountMoreThan"
-          countNumber   = var.keep_release_count
+          countType     = "sinceImagePushed"
+          countUnit     = "days"
+          countNumber   = var.release_retention_days
         }
         action = { type = "expire" }
       },

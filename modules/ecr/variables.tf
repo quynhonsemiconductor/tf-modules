@@ -26,12 +26,34 @@ variable "release_tag_prefix" {
   description = "Tag prefix for release images (the tags production pins)."
 }
 
-variable "keep_release_count" {
+variable "release_retention_days" {
   type        = number
-  default     = 30
+  default     = 180
   description = <<-EOT
-    Most-recent RELEASE images to keep. This is the rollback depth for production, so
-    it is generous on purpose: these are the tags a running task may re-pull.
+    Delete RELEASE images older than this many days. This is the rollback window for
+    production, expressed in the unit the promise is made in.
+
+    It used to be `keep_release_count = 30`, a COUNT, and that is a duration only if
+    the promotion rate is known. GitOps raises that rate — the point of promoting by
+    pull request is that a release stops being a batch of forty-four commits — so a
+    count-based rule silently shortens the rollback window exactly as deploys get
+    healthier, and the failure surfaces at the worst possible moment.
+
+    180 rather than 90: ECR storage is $0.10/GB-month and August's ECR bill was ~94%
+    data transfer, not storage, so there is no cost argument for a short window. The
+    number is chosen to be generous enough that it is not the binding constraint
+    today, and to stay correct as the promotion rate rises.
+
+    BEFORE APPLYING THIS TO A LIVE REPOSITORY, preview it. A time rule can delete
+    images a count rule was keeping, and the direction depends on the current
+    promotion rate:
+
+      aws ecr start-lifecycle-policy-preview \
+        --repository-name <repo> --lifecycle-policy-text "$(tofu output -raw ...)"
+      aws ecr get-lifecycle-policy-preview --repository-name <repo>
+
+    If the preview expires a release you would still want to roll back to, raise this
+    number. Do not lower it to match what a count rule happened to keep.
   EOT
 }
 
