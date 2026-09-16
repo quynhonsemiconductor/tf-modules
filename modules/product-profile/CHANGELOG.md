@@ -16,6 +16,25 @@ because one state owns both the database and the ECS services.
 - Secrets Manager containers created empty, under a hierarchical path so the IAM
   policy is one wildcard (§8, §7c)
 - SQS queues named by PURPOSE; the chart derives the URLs (§7c)
+- `cache.mode = "shared"` composes `cache_url` from `shared_cache` and fails the
+  plan when the wiring is missing. It creates nothing — §5d keeps one instance per
+  environment — and there is no `dedicated`
+
+### Not in the interface, and why
+
+Three inputs sketched in the design are absent, because each would have promised
+something the module cannot deliver:
+
+- **`storage.r2_buckets`** — R2 is Cloudflare and `cf-r2` requires provider v5,
+  while a root stack loads one Cloudflare major. Callers here are the data stacks,
+  which load aws + postgresql. Buckets are declared in the Cloudflare stack; the
+  name is derived on both sides (§7c) and the R2 token is a secret under the
+  prefix this module already creates.
+- **`services[*].needs_s3`** — there is no S3 in this estate (§7). A flag granting
+  nothing reads in review as a grant that exists.
+- **`vpc_id`** — nothing here takes one. `aws_db_subnet_group` is built from
+  `subnet_ids`, the security group arrives created, and IAM, Secrets Manager and
+  SQS are not VPC-scoped.
 
 ### Known limit
 

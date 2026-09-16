@@ -37,7 +37,6 @@ module "product" {
 
   oidc_provider_arn = data.terraform_remote_state.cluster.outputs.oidc_provider_arn
   oidc_issuer       = data.terraform_remote_state.cluster.outputs.oidc_issuer
-  vpc_id            = data.terraform_remote_state.network.outputs.vpc_id
   subnet_ids        = data.terraform_remote_state.network.outputs.data_subnet_ids
   security_group_id = data.terraform_remote_state.network.outputs.db_sg_id
 }
@@ -124,8 +123,18 @@ A product graduates by changing `mode` from `shared` to `dedicated`.
 
 ```
 the shared RDS instance   one per environment, owned by the platform stack
-ElastiCache               one per environment. `cache.mode = "shared"` grants
-                          access; it does not create anything (§5d)
+ElastiCache               one per environment (§5d). `cache.mode = "shared"`
+                          creates nothing and there is no `dedicated`: Redis has
+                          no IAM, so the whole grant is an endpoint and an index,
+                          both passed in as `shared_cache`. What the flag buys is
+                          `cache_url` and a plan that FAILS when a product asks
+                          for the cache with no wiring
+R2 buckets                `cf-r2`, from the Cloudflare stack. A root stack loads
+                          one Cloudflare major and `cf-r2` needs v5, so asking
+                          for a bucket here would pin every caller's Cloudflare
+                          version to suit a module about databases. The bucket
+                          NAME is derived on both sides (§7c) and the R2 token is
+                          a secret under the prefix, so nothing is lost
 the EKS cluster           the platform stack
 DNS                       the chart renders HTTPRoutes; Cloudflare records are
                           the edge stack's

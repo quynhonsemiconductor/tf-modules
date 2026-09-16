@@ -101,18 +101,49 @@ variable "cache" {
     Defaults to NONE for every product (§5d).
 
     Redis is not removable from this estate — it is qnsc-kb's Celery broker, rova
-    and opshub's shared cache, and rate limiting — but it is ONE shared instance
-    per environment with a database index per product, never an instance per
-    product. `shared` grants access; it does not create anything.
+    and opshub's shared cache, and rate limiting — but §15b consolidates it to
+    ONE cache.t4g.micro per environment with a database index per product, never
+    an instance per product.
+
+    `shared` therefore CREATES NOTHING, and there is no `dedicated`. Redis has no
+    IAM, so there is nothing to put in a policy either: the whole grant is an
+    endpoint and an index, and both are passed in as `shared_cache`. What this
+    flag buys is `cache_url` — one place that composes them, so the URL is not
+    assembled by hand in each stack — and a precondition that fails the plan when
+    a product asks for the cache and the wiring is absent.
+
+    The INDEX is allocated by the data stack, not here, because §5d's table
+    allocates by USE rather than by product (qnsc-kb holds db 0 for the broker and
+    db 1 for rate limiting) and a per-product module cannot see the other products
+    it must not collide with.
   EOT
+
+  validation {
+    # No `dedicated`. §15b's whole argument is that per-product Redis is the line
+    # that grows with product count; accepting the value would make the interface
+    # promise something the design refuses.
+    condition     = contains(["none", "shared"], var.cache.mode)
+    error_message = "cache.mode must be none or shared. There is no dedicated Redis in this estate (§15b)."
+  }
 }
 
-variable "storage" {
-  type = object({
-    r2_buckets = optional(list(string), [])
-  })
-  default = {}
-}
+# NO `storage` VARIABLE, though §6's example sketched one.
+#
+# R2 buckets are Cloudflare resources and `cf-r2` already creates them. Nesting it
+# here would drag the Cloudflare provider into a module whose callers are the data
+# stacks, which load aws + postgresql and no Cloudflare provider at all — and
+# `cf-r2` requires provider v5 specifically, while a root stack can load only one
+# Cloudflare major. So a bucket asked for here would either fail to plan or pin
+# every caller's Cloudflare version to suit a module that is otherwise about
+# databases.
+#
+# Buckets are declared in the Cloudflare stack. Nothing about that crosses into
+# this module, because §7c means the bucket name is DERIVED on both sides
+# (`qnsc-<env>-<product>-<use>`) rather than passed.
+#
+# R2 credentials are an API token under `qnsc/<env>/<product>/app/`, which the
+# `secrets` list below creates and the IAM wildcard already covers. That is the
+# only R2 fact this module needs to know.
 
 variable "queue" {
   type = object({
@@ -148,7 +179,10 @@ variable "secrets" {
 
 variable "services" {
   type = map(object({
-    needs_s3     = optional(bool, false)
+    # NO `needs_s3`. Object storage here is Cloudflare R2 (§7), which has no AWS
+    # IAM surface — access is an API token under the secret prefix, already
+    # covered by the one wildcard. A flag that granted nothing would read in
+    # review as a grant that exists.
     needs_sqs    = optional(bool, false)
     extra_policy = optional(string, "")
   }))
@@ -185,9 +219,26 @@ variable "shared_postgres" {
   description = "The shared instance for this environment. Required when postgres.mode = shared."
 }
 
-variable "vpc_id" {
-  type = string
+variable "shared_cache" {
+  type = object({
+    host     = optional(string, "")
+    port     = optional(number, 6379)
+    db_index = optional(number, 0)
+  })
+  default     = {}
+  description = <<-EOT
+    The one instance for this environment, and THIS PRODUCT'S INDEX on it (§5d).
+
+    Required when cache.mode = "shared". The index comes from the data stack's
+    allocation table, for the reason `cache` gives: uniqueness is a fact about
+    the set of products, which this module cannot see.
+  EOT
 }
+
+# NO `vpc_id`. Nothing here takes one: `aws_db_subnet_group` is built from
+# `subnet_ids`, the security group arrives already created as `security_group_id`,
+# and IAM, Secrets Manager and SQS are not VPC-scoped at all. It was passed
+# because a module that makes a database looks like it should need one.
 
 variable "subnet_ids" {
   type = list(string)

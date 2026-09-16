@@ -37,20 +37,6 @@
             "file": "/app-bucket/main.tf",
             "findings": [
                 {
-                    "resource": "module.config_bucket.aws_s3_bucket.this",
-                    "check_ids": [
-                        "CKV2_AWS_62",
-                        "CKV_AWS_144",
-                        "CKV_AWS_18"
-                    ]
-                },
-                {
-                    "resource": "module.config_bucket.aws_s3_bucket_lifecycle_configuration.this[0]",
-                    "check_ids": [
-                        "CKV_AWS_300"
-                    ]
-                },
-                {
                     "resource": "module.firelens_agent.module.config_bucket.aws_s3_bucket.this",
                     "check_ids": [
                         "CKV2_AWS_62",
@@ -82,28 +68,10 @@
             "file": "/ecs-service/main.tf",
             "findings": [
                 {
-                    "resource": "aws_cloudwatch_log_group.this",
+                    "resource": "module.service.aws_cloudwatch_log_group.this",
                     "check_ids": [
                         "CKV_AWS_158",
                         "CKV_AWS_338"
-                    ]
-                },
-                {
-                    "resource": "aws_ecs_task_definition.this",
-                    "check_ids": [
-                        "CKV_AWS_336"
-                    ]
-                },
-                {
-                    "resource": "aws_lb_target_group.this[0]",
-                    "check_ids": [
-                        "CKV_AWS_378"
-                    ]
-                },
-                {
-                    "resource": "module.service.aws_cloudwatch_log_group.this",
-                    "check_ids": [
-                        "CKV_AWS_158"
                     ]
                 },
                 {
@@ -136,7 +104,7 @@
             "file": "/messaging/main.tf",
             "findings": [
                 {
-                    "resource": "aws_sqs_queue_policy.main",
+                    "resource": "module.messaging.aws_sqs_queue_policy.main",
                     "check_ids": [
                         "CKV_AWS_168"
                     ]
@@ -264,16 +232,25 @@
             ]
         },
         {
+            "file": "/product-profile/main.tf",
+            "findings": [
+                {
+                    "resource": "aws_secretsmanager_secret.app",
+                    "check_ids": [
+                        "CKV2_AWS_57"
+                    ]
+                }
+            ]
+        },
+        {
             "file": "/rds/main.tf",
             "findings": [
                 {
-                    "resource": "aws_db_instance.this",
+                    "resource": "module.rds.aws_db_instance.this",
                     "check_ids": [
                         "CKV2_AWS_30",
                         "CKV_AWS_118",
                         "CKV_AWS_157",
-                        "CKV_AWS_161",
-                        "CKV_AWS_293",
                         "CKV_AWS_354"
                     ]
                 }

@@ -45,3 +45,15 @@ output "queue_urls" {
   value       = length(var.queue.sqs) > 0 ? module.messaging[0].queue_urls : {}
   description = "For humans. The chart derives these from the naming convention (§7c)."
 }
+
+output "cache_url" {
+  value       = local.cache_url
+  description = <<-EOT
+    `redis://<host>:<port>/<index>` when cache.mode = "shared", empty otherwise.
+
+    Unlike the names in §7c this one is NOT derivable — the index comes from §5d's
+    allocation table, which is a fact about the whole environment — so it is
+    written into the product's secret and reaches the pod through the
+    ExternalSecret, rather than being recomputed by the chart.
+  EOT
+}

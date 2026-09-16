@@ -4,6 +4,9 @@ locals {
 
 # ── Log group ─────────────────────────────────────────────────────────────────
 resource "aws_cloudwatch_log_group" "this" {
+  # checkov:skip=CKV_AWS_338: retention is var.log_retention_days, and a year of
+  #   CloudWatch ingestion for every service is the cost §15 declines. Already
+  #   baselined for the direct address; named here so the reason is at the code.
   name              = "/ecs/${local.full_name}"
   retention_in_days = var.log_retention_days
   tags              = var.tags

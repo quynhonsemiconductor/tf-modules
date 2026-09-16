@@ -32,6 +32,11 @@ locals {
   shared    = var.postgres.mode == "shared"
   has_pg    = var.postgres.mode != "none"
 
+  # §5d — ONE instance per environment, an index per use. The module composes the
+  # URL and creates nothing; `shared_cache` carries both halves in.
+  has_cache = var.cache.mode != "none"
+  cache_url = local.has_cache ? "redis://${var.shared_cache.host}:${var.shared_cache.port}/${var.shared_cache.db_index}" : ""
+
   # §5 — the instance class follows the criticality tier when not set explicitly.
   # Measured prices, from rova/infra/live/prod/main.tf:339: micro $13.14/month,
   # small $26.28.
@@ -74,6 +79,16 @@ module "rds" {
   multi_az             = var.postgres.multi_az
   db_name              = local.pg_name
   kms_key_arn          = var.kms_key_arn
+
+  # New instances, so the CMK can be set at creation — see the variable.
+  performance_insights_kms_key_arn = var.kms_key_arn
+
+  # §8 chose RDS IAM authentication, and BOTH halves are required. The roles below
+  # are granted `rds_iam` and the IRSA policy grants `rds-db:connect`, but a token
+  # minted against an instance with this off is rejected — the product would fail
+  # to connect with two correct-looking grants in place. checkov's CKV_AWS_161
+  # found the gap; three review passes over the module did not.
+  iam_database_authentication = true
 
   # §17b — one Terraform state owns both the database and, today, the ECS
   # services. `tofu destroy` run to remove ECS would take the database with it,
@@ -149,10 +164,35 @@ resource "postgresql_extension" "this" {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Cache — §5d. Nothing is created: one instance per environment already exists,
+# and this product gets an INDEX on it.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# The only thing to enforce is that asking for the cache and not wiring it is a
+# PLAN failure rather than a `redis://:6379/0` that resolves to nothing at
+# runtime. `terraform_data` holds the precondition because there is no resource
+# for it to hang off — which is itself the honest shape of "grants access".
+resource "terraform_data" "cache_contract" {
+  count = local.has_cache ? 1 : 0
+  input = local.cache_url
+
+  lifecycle {
+    precondition {
+      condition     = var.shared_cache.host != ""
+      error_message = "cache.mode = \"shared\" needs shared_cache.host. §5d keeps ONE instance per environment and this module does not create one — pass the endpoint and this product's index from the data stack."
+    }
+  }
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Secrets — containers only, created EMPTY (§8)
 # ─────────────────────────────────────────────────────────────────────────────
 
 resource "aws_secretsmanager_secret" "app" {
+  # checkov:skip=CKV2_AWS_57: §13 — these are REGENERATED, not rotated. A Grafana
+  #   token or an R2 key is re-minted at its source; automatic rotation needs a
+  #   Lambda that knows how to mint each one, which is more moving parts than the
+  #   thing it protects. §8's inventory records provenance instead.
   for_each = toset(var.secrets)
 
   name       = "${local.secret_prefix}/app/${each.value}"
