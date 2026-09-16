@@ -15,6 +15,7 @@
   "modules/observability-agent": "1.0.1",
   "modules/oneshot-task": "2.0.0",
   "modules/pages-web": "1.0.1",
+  "modules/product-profile": "0.0.0",
   "modules/product-service": "0.2.0",
   "modules/rds": "2.2.0",
   "modules/secrets": "2.1.1",

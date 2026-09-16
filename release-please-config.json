@@ -68,6 +68,9 @@
     "modules/pages-web": {
       "component": "pages-web"
     },
+    "modules/product-profile": {
+      "component": "product-profile"
+    },
     "modules/product-service": {
       "component": "product-service"
     },

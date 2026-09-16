@@ -1,6 +1,16 @@
 # Changelog — `product-profile`
 
-## v1.0.0 — unreleased
+release-please owns the version headings above this line from the first release
+onward. What follows is the hand-written note for the initial version, kept
+because it records what the module deliberately does NOT do — which a generated
+changelog cannot say.
+
+## Initial version — 0.1.x
+
+Ships UNCONSUMED, at 0.x, following `product-service`: the first `tofu apply`
+through this module renames nothing but creates a database and IRSA roles for a
+product that has never run on EKS, so the version says "not yet proven" until
+qnsc-kb's dev stack has actually applied it.
 
 First version. Replaces the compute-plus-data `stack` modules each product
 carries today; §17b shrinks those to data-only rather than destroying them,
