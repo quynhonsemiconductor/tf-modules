@@ -71,9 +71,6 @@
     "modules/product-profile": {
       "component": "product-profile"
     },
-    "modules/product-service": {
-      "component": "product-service"
-    },
     "modules/rds": {
       "component": "rds"
     },
