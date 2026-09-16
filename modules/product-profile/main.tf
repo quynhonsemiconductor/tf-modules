@@ -35,7 +35,10 @@ locals {
   # §5d — ONE instance per environment, an index per use. The module composes the
   # URL and creates nothing; `shared_cache` carries both halves in.
   has_cache = var.cache.mode != "none"
-  cache_url = local.has_cache ? "redis://${var.shared_cache.host}:${var.shared_cache.port}/${var.shared_cache.db_index}" : ""
+  cache_urls = local.has_cache ? {
+    for use, idx in var.shared_cache.db_indexes :
+    use => "redis://${var.shared_cache.host}:${var.shared_cache.port}/${idx}"
+  } : {}
 
   # §5 — the instance class follows the criticality tier when not set explicitly.
   # Measured prices, from rova/infra/live/prod/main.tf:339: micro $13.14/month,
@@ -174,12 +177,19 @@ resource "postgresql_extension" "this" {
 # for it to hang off — which is itself the honest shape of "grants access".
 resource "terraform_data" "cache_contract" {
   count = local.has_cache ? 1 : 0
-  input = local.cache_url
+  input = local.cache_urls
 
   lifecycle {
     precondition {
       condition     = var.shared_cache.host != ""
-      error_message = "cache.mode = \"shared\" needs shared_cache.host. §5d keeps ONE instance per environment and this module does not create one — pass the endpoint and this product's index from the data stack."
+      error_message = "cache.mode = \"shared\" needs shared_cache.host. §5d keeps ONE instance per environment and this module does not create one — pass the endpoint from the data stack."
+    }
+    precondition {
+      # An empty map is the silent version of the same mistake: the plan succeeds,
+      # `cache_urls` is `{}`, and nothing says the product asked for a cache it
+      # cannot reach.
+      condition     = length(var.shared_cache.db_indexes) > 0
+      error_message = "cache.mode = \"shared\" needs at least one entry in shared_cache.db_indexes. §5d allocates by USE — see the data stack's cache_host output for which index belongs to this product."
     }
   }
 }

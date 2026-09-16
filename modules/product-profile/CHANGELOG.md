@@ -16,8 +16,9 @@ because one state owns both the database and the ECS services.
 - Secrets Manager containers created empty, under a hierarchical path so the IAM
   policy is one wildcard (§8, §7c)
 - SQS queues named by PURPOSE; the chart derives the URLs (§7c)
-- `cache.mode = "shared"` composes `cache_url` from `shared_cache` and fails the
-  plan when the wiring is missing. It creates nothing — §5d keeps one instance per
+- `cache.mode = "shared"` composes `cache_urls` from `shared_cache` — one URL
+  per USE, because §5d allocates by use and qnsc-kb holds two (broker, rate
+  limiting) — and fails the plan when the wiring is missing. It creates nothing — §5d keeps one instance per
   environment — and there is no `dedicated`
 
 ### Not in the interface, and why

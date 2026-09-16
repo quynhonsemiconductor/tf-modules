@@ -221,17 +221,27 @@ variable "shared_postgres" {
 
 variable "shared_cache" {
   type = object({
-    host     = optional(string, "")
-    port     = optional(number, 6379)
-    db_index = optional(number, 0)
+    host       = optional(string, "")
+    port       = optional(number, 6379)
+    db_indexes = optional(map(number), {})
   })
   default     = {}
   description = <<-EOT
-    The one instance for this environment, and THIS PRODUCT'S INDEX on it (§5d).
+    The one instance for this environment, and THIS PRODUCT'S INDEXES on it (§5d).
 
-    Required when cache.mode = "shared". The index comes from the data stack's
-    allocation table, for the reason `cache` gives: uniqueness is a fact about
-    the set of products, which this module cannot see.
+    A MAP, not a number, because §5d allocates by USE and qnsc-kb holds two:
+
+        db 0  qnsc-kb   Celery broker
+        db 1  qnsc-kb   rate limiting
+        db 2  rova      platform-cache
+        db 3  opshub    platform-cache
+
+    so kb passes `{ broker = 0, ratelimit = 1 }` and gets one URL per key back.
+    The allocation lives in the data stack's `cache_host` output, for the reason
+    `cache` gives: uniqueness is a fact about the whole environment, which a
+    per-product module cannot see.
+
+    Required when cache.mode = "shared".
   EOT
 }
 

@@ -127,8 +127,9 @@ ElastiCache               one per environment (§5d). `cache.mode = "shared"`
                           creates nothing and there is no `dedicated`: Redis has
                           no IAM, so the whole grant is an endpoint and an index,
                           both passed in as `shared_cache`. What the flag buys is
-                          `cache_url` and a plan that FAILS when a product asks
-                          for the cache with no wiring
+                          `cache_urls` — one per USE, because §5d allocates by
+                          use and qnsc-kb holds two — and a plan that FAILS when
+                          a product asks for the cache with no wiring
 R2 buckets                `cf-r2`, from the Cloudflare stack. A root stack loads
                           one Cloudflare major and `cf-r2` needs v5, so asking
                           for a bucket here would pin every caller's Cloudflare
