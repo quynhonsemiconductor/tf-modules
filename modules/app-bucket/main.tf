@@ -8,6 +8,20 @@
 # =============================================================================
 
 resource "aws_s3_bucket" "this" {
+  # These three were already accepted — the baseline carried them at
+  # `module.firelens_agent.module.config_bucket.aws_s3_bucket.this`, an address
+  # that existed only because `product-service` wrapped this module. Deleting that
+  # dead module removed the wrapper and the suppressions stopped matching, which is
+  # how a dead module turns out to have been HIDING findings. Recorded at the
+  # resource now, where no future wrapper can move them.
+  #
+  # checkov:skip=CKV_AWS_18: access logging on an application bucket would need a
+  #   second bucket per product to receive it, at S3 cost and with nothing reading
+  #   it. CloudTrail data events cover the audit question this asks.
+  # checkov:skip=CKV_AWS_144: cross-region replication is a disaster-recovery
+  #   posture this estate has not bought — one region, ap-southeast-1 (§12).
+  # checkov:skip=CKV2_AWS_62: event notifications are a feature, not a control.
+  #   The buckets that need them configure them at the call site.
   bucket        = var.name
   force_destroy = var.force_destroy
   tags          = merge(var.tags, { Name = var.name })
@@ -71,6 +85,10 @@ resource "aws_s3_bucket_cors_configuration" "this" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  # checkov:skip=CKV_AWS_300: this rule wants an abort-incomplete-multipart-upload
+  #   period, and the callers that use multipart set one. A module-wide default
+  #   would silently expire a caller's in-flight upload. Was suppressed at
+  #   `module.firelens_agent.module.config_bucket.…`, gone with `product-service`.
   count  = length(var.lifecycle_rules) > 0 ? 1 : 0
   bucket = aws_s3_bucket.this.id
 

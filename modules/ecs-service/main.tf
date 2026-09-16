@@ -236,6 +236,12 @@ resource "aws_iam_role_policy" "task_secrets" {
 # taken: it would silence real drift in image, secrets and sizing, which is the part
 # Terraform exists to own here.
 resource "aws_ecs_task_definition" "this" {
+  # checkov:skip=CKV_AWS_336: a read-only root filesystem breaks every image in
+  #   this estate that writes a PID file, a cache or a temp upload. It is worth
+  #   doing per-service with the writable paths mapped as tmpfs, not as a blanket
+  #   module default that would fail at deploy rather than at plan. Previously
+  #   suppressed at `module.service.aws_ecs_task_definition.this`, an address that
+  #   only existed while `product-service` wrapped this module.
   family                   = local.full_name
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -299,6 +305,10 @@ resource "aws_ecs_task_definition" "this" {
 
 # ── Target group (ALB-attached services) ──────────────────────────────────────
 resource "aws_lb_target_group" "this" {
+  # checkov:skip=CKV_AWS_378: HTTP to the TARGET, not from the internet. TLS
+  #   terminates at the ALB, and §3's replacement for it terminates at Cloudflare;
+  #   the hop from there to a task inside the VPC is plaintext by design. Was
+  #   suppressed at `module.service.aws_lb_target_group.this`.
   count       = var.attach_alb ? 1 : 0
   name        = substr(local.full_name, 0, 32)
   port        = var.container_port
