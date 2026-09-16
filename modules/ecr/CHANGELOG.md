@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/quynhonsemiconductor/tf-modules/compare/ecr-v2.0.0...ecr-v2.1.0) (2026-09-16)
+
+
+### Features
+
+* **product-profile:** the module, and time-based ECR retention ([#144](https://github.com/quynhonsemiconductor/tf-modules/issues/144)) ([ece31d4](https://github.com/quynhonsemiconductor/tf-modules/commit/ece31d4c918b060ecb869c0a143111598bf2d333))
+
 ## [2.0.0](https://github.com/QNSC-VN/qnsc-tf-modules/compare/ecr-v1.1.0...ecr-v2.0.0) (2026-07-27)
 
 

@@ -1,4 +1,13 @@
-# Changelog — `product-profile`
+# Changelog
+
+## 0.1.0 (2026-09-16)
+
+
+### Features
+
+* **product-profile:** the module, and time-based ECR retention ([#144](https://github.com/quynhonsemiconductor/tf-modules/issues/144)) ([ece31d4](https://github.com/quynhonsemiconductor/tf-modules/commit/ece31d4c918b060ecb869c0a143111598bf2d333))
+
+## Changelog — `product-profile`
 
 release-please owns the version headings above this line from the first release
 onward. What follows is the hand-written note for the initial version, kept
