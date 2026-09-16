@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/quynhonsemiconductor/tf-modules/compare/ecs-service-v2.3.2...ecs-service-v2.4.0) (2026-09-16)
+
+
+### Features
+
+* **product-profile:** the module, and time-based ECR retention ([#144](https://github.com/quynhonsemiconductor/tf-modules/issues/144)) ([ece31d4](https://github.com/quynhonsemiconductor/tf-modules/commit/ece31d4c918b060ecb869c0a143111598bf2d333))
+
 ## [2.3.2](https://github.com/QNSC-VN/qnsc-tf-modules/compare/ecs-service-v2.3.1...ecs-service-v2.3.2) (2026-08-30)
 
 
