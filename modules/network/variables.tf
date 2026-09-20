@@ -33,6 +33,44 @@ variable "data_subnet_cidrs" {
   description = "CIDRs for data subnets, ordered to match azs."
 }
 
+variable "cluster_subnet_cidrs" {
+  type        = list(string)
+  default     = []
+  description = <<-EOT
+    CIDRs for the EKS cluster subnets — nodes and pods. Task 0.6, §3, §15c.
+
+    EMPTY BY DEFAULT, so this is a no-op for every existing caller and their plans
+    stay empty. Only the two runtime stacks that front a cluster set it.
+
+    These are ADDITIONAL subnets, not a resize of `private_subnet_cidrs`. See the
+    long comment on `aws_subnet.cluster` for why a resize is not available: AWS has
+    no subnet-resize operation, `cidr_block` forces replacement, and runtime-prod
+    is applied with ECS ENIs in its private subnets.
+
+    SIZE THEM /20. EKS Auto Mode allocates a /28 prefix — sixteen addresses — per
+    node up front, so a /24 holds roughly fifteen nodes' worth of prefixes per AZ
+    before allocation fails, and §15c records what that looks like: pods stuck in
+    `ContainerCreating` with no obvious cause.
+
+    CHOOSE THE RANGE BY HAND, and check it. A /20 must start on a /20 boundary, so
+    the obvious continuation of an existing /24 layout usually is not legal and the
+    nearest legal block often swallows a tier already in use — in a 10.x.0.0/16
+    with data subnets at 10.x.20-22.0/24, `10.x.16.0/20` covers 10.x.16.0 through
+    10.x.31.255 and collides with all three of them. The validation below catches
+    the size and the count; it cannot catch an overlap with a sibling tier.
+  EOT
+
+  validation {
+    condition     = length(var.cluster_subnet_cidrs) == 0 || alltrue([for c in var.cluster_subnet_cidrs : tonumber(split("/", c)[1]) <= 20])
+    error_message = "cluster_subnet_cidrs must be /20 or larger (a smaller prefix number). §15c: Auto Mode reserves a /28 per node, so a /24 exhausts at roughly fifteen nodes per AZ."
+  }
+
+  validation {
+    condition     = length(var.cluster_subnet_cidrs) == 0 || length(var.cluster_subnet_cidrs) == length(var.azs)
+    error_message = "cluster_subnet_cidrs must be empty or hold exactly one CIDR per entry in azs, in the same order — the module zips them positionally."
+  }
+}
+
 variable "app_port" {
   type        = number
   default     = 3000
