@@ -4,7 +4,7 @@
 # independently and tagged as `<name>-vX.Y.Z` (e.g. ecr-v1.1.0), matching how
 # consumers pin `?ref=<name>-vX.Y.Z`. Before this, those tags were cut by hand.
 #
-# Requires: RELEASE_BOT_APP_ID (org var) + RELEASE_BOT_PRIVATE_KEY (org secret).
+# Requires: QNSC_AUTOMATION_APP_ID (org var) + QNSC_AUTOMATION_PRIVATE_KEY (org secret).
 # Both optional — the reusable falls back to github.token when unset (but then
 # release tags won't trigger downstream workflows).
 # =============================================================================
@@ -28,4 +28,4 @@ jobs:
     with:
       manifest_file: .release-please-manifest.json
     secrets:
-      RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+      QNSC_AUTOMATION_PRIVATE_KEY: ${{ secrets.QNSC_AUTOMATION_PRIVATE_KEY }}
