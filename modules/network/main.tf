@@ -40,6 +40,62 @@ resource "aws_subnet" "data" {
   tags              = merge(var.tags, { Name = "${var.name}-data-${each.key}", Tier = "data" })
 }
 
+# ── Subnets (cluster) — task 0.6, §3, §15c ───────────────────────────────────
+#
+# A FOURTH TIER, ADDED RATHER THAN A RESIZE — and the difference is the whole
+# reason this variable exists.
+#
+# Task 0.6 is written as "private subnets in runtime-dev and runtime-prod are /20"
+# and its acceptance test is "existing ECS tasks are unaffected". Those two cannot
+# both be true of the same subnets. `cidr_block` on `aws_subnet` forces
+# replacement, and AWS has no resize operation on a subnet at all — so making
+# `private_subnet_cidrs` a /20 destroys and recreates all three private subnets,
+# which cannot happen while ENIs are attached. runtime-prod is APPLIED and running
+# ECS tasks in those subnets, so the plan is a destroy the API will refuse
+# half-way, and the "fix" is draining production first.
+#
+# So the /20 space is NEW subnets, and the old /24s keep every ECS task exactly
+# where it is. That also makes this reversible, which a resize never was: the
+# cluster tier is deleted by emptying this list.
+#
+# WHY /20 AT ALL, since the number looks arbitrary: §15c lists IP exhaustion as
+# failure #2, and EKS Auto Mode's pod networking is what makes a /24 too small.
+# Auto Mode uses prefix delegation by default and allocates a /28 — SIXTEEN
+# addresses — to each node up front, adding another /28 when pod demand exceeds
+# the block. A /24 is 251 usable addresses, so roughly fifteen nodes' worth of
+# prefixes per AZ before allocation fails, and it is shared with whatever ECS
+# still holds. Exhaustion presents as pods stuck in `ContainerCreating` with no
+# obvious cause. A /20 is 4091 usable and takes the problem off the table.
+#
+# ROUTED THROUGH THE EXISTING PRIVATE ROUTE TABLES, deliberately, rather than
+# getting their own. Two things fall out of that for free: NAT egress (nodes must
+# reach ECR, STS and the EKS endpoint) and the S3 gateway endpoint, which §3 added
+# because August's ECR bill was ~94% data transfer and Kubernetes pulls on every
+# scale-out, not only on deploy. A separate route table would have silently
+# omitted both.
+#
+# THE TWO TAGS ARE AN API, not decoration. An EKS Auto Mode `NodeClass` selects
+# its subnets by tag, and selector terms match exact values with no wildcards — so
+# `Name` cannot address three per-AZ subnets at once. `Tier` + `Network` can, and
+# `Network` is what keeps a dev NodeClass from ever matching a prod subnet.
+# See gitops/platform/compute/.
+resource "aws_subnet" "cluster" {
+  for_each          = { for i, az in var.azs : az => var.cluster_subnet_cidrs[i] }
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = each.value
+  availability_zone = each.key
+
+  tags = merge(var.tags, {
+    Name = "${var.name}-cluster-${each.key}"
+
+    # Consumed by gitops/platform/compute/nodeclass.yaml. Renaming either of
+    # these breaks node provisioning at RUNTIME, not at plan time: the NodeClass
+    # simply matches nothing and nodes never launch.
+    Tier    = "cluster"
+    Network = var.name
+  })
+}
+
 # ── Internet Gateway ──────────────────────────────────────────────────────────
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
@@ -242,6 +298,19 @@ resource "aws_route_table" "private" {
 
 resource "aws_route_table_association" "private" {
   for_each       = aws_subnet.private
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private[each.key].id
+}
+
+# The cluster tier shares the PRIVATE route tables rather than owning any.
+#
+# That is what gives EKS nodes NAT egress (ECR, STS, the EKS endpoint) and the
+# free S3 gateway endpoint §3 added, without either being configured twice. It
+# also means `infra/live/cluster-*`'s `data.aws_route_table.private` lookup — the
+# one that feeds `aws_vpc_endpoint.s3.route_table_ids` — already covers these
+# subnets, because it resolves route tables, not subnets.
+resource "aws_route_table_association" "cluster" {
+  for_each       = aws_subnet.cluster
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private[each.key].id
 }

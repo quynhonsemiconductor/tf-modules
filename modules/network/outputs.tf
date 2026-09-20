@@ -18,6 +18,22 @@ output "data_subnet_ids" {
   description = "Data subnet IDs (RDS, cache)."
 }
 
+output "cluster_subnet_ids" {
+  value       = [for s in aws_subnet.cluster : s.id]
+  description = <<-EOT
+    EKS cluster subnet IDs — the /20 tier that holds nodes and pods. Task 0.6.
+
+    EMPTY unless `cluster_subnet_cidrs` was set, which is why `infra/live/cluster-*`
+    must read THIS output rather than `private_subnet_ids`: the private tier is the
+    ECS one and keeps its /24s (see `aws_subnet.cluster`).
+
+    An empty list here is the failure mode to recognise. `aws_eks_cluster` rejects
+    an empty `subnet_ids`, so a cluster stack pointed at this output before the
+    runtime stack sets its CIDRs fails at PLAN with a validation error rather than
+    creating something subtly wrong — which is the order this should fail in.
+  EOT
+}
+
 output "sg_alb_id" {
   value       = aws_security_group.alb.id
   description = "ALB security group ID."
