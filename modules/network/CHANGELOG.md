@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/quynhonsemiconductor/tf-modules/compare/network-v1.3.1...network-v1.4.0) (2026-09-20)
+
+
+### Features
+
+* **network:** a /20 cluster subnet tier for EKS ([#147](https://github.com/quynhonsemiconductor/tf-modules/issues/147)) ([9c3c9d7](https://github.com/quynhonsemiconductor/tf-modules/commit/9c3c9d7e67b83d24aec2023f6526812b8a7a8c48))
+
 ## [1.3.1](https://github.com/QNSC-VN/qnsc-tf-modules/compare/network-v1.3.0...network-v1.3.1) (2026-08-16)
 
 
