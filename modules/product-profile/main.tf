@@ -284,6 +284,27 @@ resource "postgresql_role" "migrator" {
   # The long fuse §4 sets deliberately: 600s, because the default kills a slow
   # migration part-way, which is the worst possible moment. Same unit note as above.
   statement_timeout = 600000
+
+  # ── CREATEROLE, BECAUSE THE SCHEMA HISTORY CREATES ROLES ────────────────────
+  #
+  # A migration history has to replay in full on an empty database, and rova's does
+  # this at 0068:
+  #
+  #     CREATE ROLE rally_app NOLOGIN;
+  #
+  # so a migrator without CREATEROLE cannot reach the current schema at all:
+  #
+  #     error: permission denied to create role   (routine: CreateRole)
+  #
+  # On an existing database this never surfaces — the migration ran years of deploys
+  # ago — so it appears only when a NEW environment is built, which is exactly when a
+  # migration failure is most expensive.
+  #
+  # This is narrower than it sounds. CREATEROLE lets the migrator manage roles; it does
+  # NOT grant superuser, and on RDS it cannot escalate to `rds_superuser`. The
+  # alternative — running migrations as the master user — is the stored admin credential
+  # §8 exists to remove.
+  create_role = true
 }
 
 # ── Per-role limits — emitted as SQL, not applied here ───────────────────────
