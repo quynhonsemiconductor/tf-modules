@@ -185,6 +185,22 @@ variable "services" {
     # review as a grant that exists.
     needs_sqs    = optional(bool, false)
     extra_policy = optional(string, "")
+    # Which DATABASE role this service authenticates as. §5d creates TWO —
+    # `<product>` for runtime and `<product>_migrator` for DDL — and the IRSA policy
+    # granted `rds-db:connect` for the runtime one to EVERY service, so the migrator
+    # could not authenticate as itself:
+    #
+    #     FATAL: PAM authentication failed for user "rova_migrator"
+    #
+    # PAM is how RDS surfaces IAM auth, so the message names neither IAM nor the
+    # missing grant. Both halves of §8 looked present — the role is in `rds_iam`, the
+    # policy says rds-db:connect — and the pair did not line up.
+    #
+    # `null` means "infer from the name", which keeps every existing caller correct
+    # without a change: the service named `migrator` gets the migrator role, because
+    # that name is ALREADY the contract the chart relies on (its Job template derives
+    # DATABASE_USER as `<user>_migrator`). Set it explicitly to override.
+    uses_migrator_db_role = optional(bool, null)
   }))
   default     = {}
   description = <<-EOT

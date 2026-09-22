@@ -371,7 +371,12 @@ data "aws_iam_policy_document" "service" {
       effect  = "Allow"
       actions = ["rds-db:connect"]
       resources = [
-        "arn:aws:rds-db:${var.region}:${data.aws_caller_identity.current.account_id}:dbuser:*/${local.pg_name}",
+        # THE MIGRATOR AUTHENTICATES AS A DIFFERENT DATABASE USER. §5d creates two
+        # roles precisely so DDL and runtime are separate; granting only the runtime
+        # one meant the migrator Job could not connect at all, failing with
+        # `PAM authentication failed for user "<product>_migrator"` — a message that
+        # names neither IAM nor the grant it is missing.
+        "arn:aws:rds-db:${var.region}:${data.aws_caller_identity.current.account_id}:dbuser:*/${coalesce(each.value.uses_migrator_db_role, each.key == "migrator") ? local.pg_migrator : local.pg_name}",
       ]
     }
   }
