@@ -121,6 +121,26 @@ resource "postgresql_role" "app" {
   # §8 — RDS IAM authentication. No password exists, so there is nothing to
   # store, nothing to rotate, and nothing to get wrong on the next 2026-09-06.
   roles = ["rds_iam"]
+
+  # ── MANAGED HERE, NOT IN role_settings_sql, AND THAT IS A BUG FIX ───────────
+  #
+  # The note below says the provider "has NO resource for role settings". True of
+  # idle_in_transaction_session_timeout; NOT true of these two — `postgresql_role`
+  # has had both for some time.
+  #
+  # Emitting them as SQL did something worse than duplicate them. It wrote
+  # `statement_timeout = '30s'`, and the provider reads that attribute back as an
+  # INTEGER of milliseconds, so every later plan or apply of the consuming stack
+  # failed before doing anything at all:
+  #
+  #     Error: error reading statement_timeout: strconv.Atoi: parsing "30s": invalid syntax
+  #
+  # The apply that installed the guard was the apply that broke the stack. Setting it
+  # natively keeps state and reality in agreement, in a form the provider can read.
+  #
+  # 30000ms IS §5d's 30s — milliseconds are the provider's unit, not a new value.
+  statement_timeout = 30000
+  connection_limit  = 40
 }
 
 resource "postgresql_role" "migrator" {
@@ -128,6 +148,10 @@ resource "postgresql_role" "migrator" {
   name  = local.pg_migrator
   login = true
   roles = ["rds_iam"]
+
+  # The long fuse §4 sets deliberately: 600s, because the default kills a slow
+  # migration part-way, which is the worst possible moment. Same unit note as above.
+  statement_timeout = 600000
 }
 
 # ── Per-role limits — emitted as SQL, not applied here ───────────────────────
@@ -147,15 +171,17 @@ resource "postgresql_role" "migrator" {
 #
 # Revisit if the provider grows the resource.
 locals {
-  role_settings_sql = local.has_pg ? join("\n", [
+  # ONLY what the provider cannot express. statement_timeout and CONNECTION LIMIT
+  # moved onto the postgresql_role resources above — emitting them here wrote
+  # `'30s'`, which the provider could not read back as an integer, and every
+  # subsequent apply of the consuming stack then failed before doing anything.
+  # What remains genuinely has no attribute.
+  role_settings_sql = local.has_pg ? join("\\n", [
     "-- §5d — bounds a noisy neighbour on the shared instance. Idempotent.",
-    "ALTER ROLE ${local.pg_name} SET statement_timeout = '30s';",
     "ALTER ROLE ${local.pg_name} SET idle_in_transaction_session_timeout = '60s';",
-    "ALTER ROLE ${local.pg_name} CONNECTION LIMIT 40;",
     "",
-    "-- The migrator needs the long fuse §4 sets deliberately: the default kills a",
-    "-- slow migration part-way, which is the worst possible moment.",
-    "ALTER ROLE ${local.pg_migrator} SET statement_timeout = '600s';",
+    "-- The migrator holds a transaction open for the length of a migration, so it",
+    "-- must NOT be reaped for idling inside one.",
     "ALTER ROLE ${local.pg_migrator} SET idle_in_transaction_session_timeout = '0';",
   ]) : ""
 }
