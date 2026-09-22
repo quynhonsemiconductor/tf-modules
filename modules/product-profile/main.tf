@@ -111,6 +111,109 @@ module "rds" {
 resource "postgresql_database" "this" {
   count = local.shared ? 1 : 0
   name  = local.pg_name
+
+  # ── THE MIGRATOR OWNS THE DATABASE, AND NOTHING DID BEFORE ─────────────────
+  #
+  # The module created the database and both roles and granted NOTHING, so the
+  # migrator authenticated successfully and then could not do anything:
+  #
+  #     ERROR: permission denied for database rova   (routine: aclcheck_error)
+  #
+  # on `CREATE SCHEMA IF NOT EXISTS "drizzle"`, which is drizzle's first statement. The
+  # database was owned by the admin role the provider connects as, and since PostgreSQL
+  # 15 a non-owner has no CREATE on `public` either — so both halves of a migration were
+  # refused.
+  #
+  # OWNERSHIP GOES TO THE MIGRATOR, not the app role and not the admin. It is the DDL
+  # identity by §5d's design, so it should own what it reshapes; and keeping the admin
+  # as owner would mean every migration needed the admin credential, which is exactly
+  # the stored password §8 removes.
+  owner = local.pg_migrator
+
+  depends_on = [postgresql_role.migrator]
+}
+
+# ── What the RUNTIME role may do — §5d, §8 ───────────────────────────────────
+#
+# The app role owns nothing and creates nothing. It connects, reads and writes rows in
+# the schema the migrator built. A compromised application therefore cannot reshape its
+# own schema, which is the property the two-role split exists for.
+resource "postgresql_grant" "app_connect" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_name
+  object_type = "database"
+  privileges  = ["CONNECT"]
+
+  depends_on = [postgresql_role.app, postgresql_database.this]
+}
+
+resource "postgresql_grant" "app_schema_usage" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_name
+  schema      = "public"
+  object_type = "schema"
+  privileges  = ["USAGE"]
+
+  depends_on = [postgresql_grant.app_connect]
+}
+
+# DML on what EXISTS today. `postgresql_default_privileges` below covers what the
+# migrator creates later — both are needed, and only having the second is a common way
+# to end up with an app that can read new tables and not old ones.
+resource "postgresql_grant" "app_tables" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_name
+  schema      = "public"
+  object_type = "table"
+  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+
+  depends_on = [postgresql_grant.app_schema_usage]
+}
+
+resource "postgresql_grant" "app_sequences" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_name
+  schema      = "public"
+  object_type = "sequence"
+  privileges  = ["USAGE", "SELECT"]
+
+  depends_on = [postgresql_grant.app_schema_usage]
+}
+
+# ── AND ON EVERYTHING THE MIGRATOR CREATES FROM NOW ON ───────────────────────
+#
+# Without these, every future migration produces tables the application cannot read,
+# and the failure arrives one deploy AFTER the change that caused it — the migration
+# succeeds, then the app 500s on a table it has no privilege for.
+#
+# `owner` is the migrator because default privileges attach to the role that CREATES
+# the object, not to the one being granted.
+resource "postgresql_default_privileges" "app_tables" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_name
+  owner       = local.pg_migrator
+  schema      = "public"
+  object_type = "table"
+  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+
+  depends_on = [postgresql_grant.app_schema_usage]
+}
+
+resource "postgresql_default_privileges" "app_sequences" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_name
+  owner       = local.pg_migrator
+  schema      = "public"
+  object_type = "sequence"
+  privileges  = ["USAGE", "SELECT"]
+
+  depends_on = [postgresql_grant.app_schema_usage]
 }
 
 resource "postgresql_role" "app" {
