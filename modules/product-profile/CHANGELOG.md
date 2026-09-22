@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.1](https://github.com/quynhonsemiconductor/tf-modules/compare/product-profile-v0.1.0...product-profile-v0.1.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **product-profile:** grant CREATE instead of transferring database ownership ([#156](https://github.com/quynhonsemiconductor/tf-modules/issues/156)) ([9164dfb](https://github.com/quynhonsemiconductor/tf-modules/commit/9164dfb30c5635f175ab7b0985d3eaeb945339b7))
+* **product-profile:** grant the app role on the schemas it actually uses ([#158](https://github.com/quynhonsemiconductor/tf-modules/issues/158)) ([c1118fe](https://github.com/quynhonsemiconductor/tf-modules/commit/c1118fe1b4da58ac3335239257d8758cae1d9773))
+* **product-profile:** grant the discovery a path-based secret policy needs ([#151](https://github.com/quynhonsemiconductor/tf-modules/issues/151)) ([ec2491f](https://github.com/quynhonsemiconductor/tf-modules/commit/ec2491f6e4e2dc64ad2b32386983cfd7aa8d2080))
+* **product-profile:** grant the two database roles the privileges they need ([#155](https://github.com/quynhonsemiconductor/tf-modules/issues/155)) ([8bb2a3f](https://github.com/quynhonsemiconductor/tf-modules/commit/8bb2a3f4571cbb650bf681dec21a18febb5ac3b3))
+* **product-profile:** let the migrator authenticate as its own database role ([#154](https://github.com/quynhonsemiconductor/tf-modules/issues/154)) ([29fa5da](https://github.com/quynhonsemiconductor/tf-modules/commit/29fa5da8ba44f521a19c9c0fffde176877fa114c))
+* **product-profile:** set role limits natively, because the SQL bricked the stack ([#153](https://github.com/quynhonsemiconductor/tf-modules/issues/153)) ([3e8efba](https://github.com/quynhonsemiconductor/tf-modules/commit/3e8efba1e46583cf7164b6acb34617e1ffa8e25f))
+* **product-profile:** the migrator needs CREATEROLE, because the schema history uses it ([#157](https://github.com/quynhonsemiconductor/tf-modules/issues/157)) ([568cb23](https://github.com/quynhonsemiconductor/tf-modules/commit/568cb234dc01b555eb6c62481635bce1a7a7b73e))
+
 ## 0.1.0 (2026-09-16)
 
 
