@@ -285,6 +285,58 @@ data "aws_iam_policy_document" "service" {
     }
   }
 
+  # ── DISCOVERY, WITHOUT WHICH THE WILDCARD ABOVE IS UNUSABLE ─────────────────
+  #
+  # The statement above grants the right to READ a secret whose name you already
+  # know. ESO does not know the names: the chart says `dataFrom.find.path`, which is
+  # how one policy covers a growing set of secrets — the whole point of the
+  # hierarchical path. Resolving a path into names is `ListSecrets`, and reading the
+  # results is `BatchGetSecretValue`.
+  #
+  # Neither was granted, so every ExternalSecret in every product namespace failed
+  # with `AccessDeniedException` on BatchGetSecretValue while the SecretStore itself
+  # reported `Valid` — validation proves reachability, never a read.
+  #
+  # `*` IS NOT A WIDENING OF READ SCOPE, which is worth stating precisely because it
+  # looks like one. Neither action supports resource-level permissions, so AWS
+  # requires `*`. BatchGetSecretValue then evaluates GetSecretValue per returned
+  # secret against the statement above, so the set this role can actually read stays
+  # exactly `${local.secret_prefix}/*`. ListSecrets does reveal that other secrets
+  # EXIST, names only — that is the real cost, and it is small.
+  dynamic "statement" {
+    for_each = length(var.secrets) > 0 ? [1] : []
+    content {
+      effect    = "Allow"
+      actions   = ["secretsmanager:ListSecrets", "secretsmanager:BatchGetSecretValue"]
+      resources = ["*"]
+    }
+  }
+
+  # ── AND THE KEY THEY ARE ENCRYPTED WITH ─────────────────────────────────────
+  #
+  # These secrets are created with `kms_key_id` set (see aws_secretsmanager_secret
+  # above), so a read also needs kms:Decrypt. Without it GetSecretValue fails with an
+  # AccessDenied that names KMS rather than Secrets Manager — an error that sends you
+  # to the wrong policy.
+  #
+  # `kms:ViaService` confines the grant to decryption performed BY Secrets Manager on
+  # this role's behalf, so it cannot decrypt anything else under the same key by any
+  # other route.
+  dynamic "statement" {
+    for_each = length(var.secrets) > 0 && var.kms_key_arn != "" ? [1] : []
+    content {
+      effect    = "Allow"
+      actions   = ["kms:Decrypt"]
+      resources = [var.kms_key_arn]
+      condition {
+        test     = "StringEquals"
+        variable = "kms:ViaService"
+        values   = ["secretsmanager.${var.region}.amazonaws.com"]
+      }
+    }
+  }
+
+
   # RDS IAM auth: the right to mint a 15-minute token for THIS product's role on
   # THIS instance. Nothing long-lived is granted.
   dynamic "statement" {
