@@ -178,10 +178,10 @@ resource "postgresql_grant" "app_connect" {
 }
 
 resource "postgresql_grant" "app_schema_usage" {
-  count       = local.has_pg ? 1 : 0
+  for_each    = local.has_pg ? toset(var.postgres.app_schemas) : []
   database    = local.pg_name
   role        = local.pg_name
-  schema      = "public"
+  schema      = each.value
   object_type = "schema"
   privileges  = ["USAGE"]
 
@@ -192,10 +192,10 @@ resource "postgresql_grant" "app_schema_usage" {
 # migrator creates later — both are needed, and only having the second is a common way
 # to end up with an app that can read new tables and not old ones.
 resource "postgresql_grant" "app_tables" {
-  count       = local.has_pg ? 1 : 0
+  for_each    = local.has_pg ? toset(var.postgres.app_schemas) : []
   database    = local.pg_name
   role        = local.pg_name
-  schema      = "public"
+  schema      = each.value
   object_type = "table"
   privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
 
@@ -203,10 +203,10 @@ resource "postgresql_grant" "app_tables" {
 }
 
 resource "postgresql_grant" "app_sequences" {
-  count       = local.has_pg ? 1 : 0
+  for_each    = local.has_pg ? toset(var.postgres.app_schemas) : []
   database    = local.pg_name
   role        = local.pg_name
-  schema      = "public"
+  schema      = each.value
   object_type = "sequence"
   privileges  = ["USAGE", "SELECT"]
 
@@ -222,11 +222,11 @@ resource "postgresql_grant" "app_sequences" {
 # `owner` is the migrator because default privileges attach to the role that CREATES
 # the object, not to the one being granted.
 resource "postgresql_default_privileges" "app_tables" {
-  count       = local.has_pg ? 1 : 0
+  for_each    = local.has_pg ? toset(var.postgres.app_schemas) : []
   database    = local.pg_name
   role        = local.pg_name
   owner       = local.pg_migrator
-  schema      = "public"
+  schema      = each.value
   object_type = "table"
   privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
 
@@ -234,11 +234,11 @@ resource "postgresql_default_privileges" "app_tables" {
 }
 
 resource "postgresql_default_privileges" "app_sequences" {
-  count       = local.has_pg ? 1 : 0
+  for_each    = local.has_pg ? toset(var.postgres.app_schemas) : []
   database    = local.pg_name
   role        = local.pg_name
   owner       = local.pg_migrator
-  schema      = "public"
+  schema      = each.value
   object_type = "sequence"
   privileges  = ["USAGE", "SELECT"]
 

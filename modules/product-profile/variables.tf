@@ -69,6 +69,20 @@ variable "postgres" {
     instance_class = optional(string, "") # dedicated only; "" picks from size
     storage_gb     = optional(number, 20)
     multi_az       = optional(bool, false)
+    # SCHEMAS THE APPLICATION READS AND WRITES.
+    #
+    # Not a style question: rova's migrations put nothing in `public`. They build domain
+    # schemas — work, identity, scm, workspace, messaging, access, notifications, audit,
+    # storage — and grants scoped to `public` therefore covered NOTHING. The app role
+    # connected successfully and then could not see a single table:
+    #
+    #     ERROR: permission denied for schema identity
+    #
+    # Listed rather than discovered because Terraform cannot enumerate schemas a
+    # migration has not run yet, and because a forgotten entry then fails loudly at the
+    # first query instead of silently granting less than intended. `public` is the
+    # default so products that never left it need no change.
+    app_schemas = optional(list(string), ["public"])
   })
   default     = {}
   description = <<-EOT
