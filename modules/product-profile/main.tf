@@ -112,25 +112,54 @@ resource "postgresql_database" "this" {
   count = local.shared ? 1 : 0
   name  = local.pg_name
 
-  # ── THE MIGRATOR OWNS THE DATABASE, AND NOTHING DID BEFORE ─────────────────
-  #
-  # The module created the database and both roles and granted NOTHING, so the
-  # migrator authenticated successfully and then could not do anything:
-  #
-  #     ERROR: permission denied for database rova   (routine: aclcheck_error)
-  #
-  # on `CREATE SCHEMA IF NOT EXISTS "drizzle"`, which is drizzle's first statement. The
-  # database was owned by the admin role the provider connects as, and since PostgreSQL
-  # 15 a non-owner has no CREATE on `public` either — so both halves of a migration were
-  # refused.
-  #
-  # OWNERSHIP GOES TO THE MIGRATOR, not the app role and not the admin. It is the DDL
-  # identity by §5d's design, so it should own what it reshapes; and keeping the admin
-  # as owner would mean every migration needed the admin credential, which is exactly
-  # the stored password §8 removes.
-  owner = local.pg_migrator
+  # NO `owner`, AND THAT IS A HARD-WON CHOICE — SEE BELOW.
+}
 
-  depends_on = [postgresql_role.migrator]
+# ── WHY THE MIGRATOR DOES NOT OWN THE DATABASE ───────────────────────────────
+#
+# Making it the owner is the obvious modelling: it is the DDL identity, so let it own
+# what it reshapes. It also locks the admin out of the instance, and this module did
+# exactly that before reverting.
+#
+# To set a database's owner, the connecting role must be a member of the new owning
+# role, so the provider grants it. `<product>_migrator` is a member of `rds_iam`, and
+# MEMBERSHIP IN `rds_iam` IS INHERITED — so `app_admin` acquired it and RDS immediately
+# stopped accepting its PASSWORD:
+#
+#     FATAL: PAM authentication failed for user "app_admin"
+#
+# The master credential, the one thing every future apply of this stack depends on,
+# became unusable as a side effect of a grant nobody asked for. Recovery was only
+# possible because app_admin had by then also inherited the ability to authenticate by
+# IAM TOKEN, which is a coincidence and not a plan.
+#
+# Grants achieve the same end with none of that: CREATE on the database lets the
+# migrator create schemas, and ALL on `public` lets it build in the default one. No
+# membership, no inheritance, no lockout.
+resource "postgresql_grant" "migrator_create_db" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_migrator
+  object_type = "database"
+  # CONNECT is implied by PUBLIC today, and named explicitly because a future
+  # `REVOKE ... FROM PUBLIC` should not silently break migrations.
+  privileges = ["CONNECT", "CREATE"]
+
+  depends_on = [postgresql_role.migrator, postgresql_database.this]
+}
+
+resource "postgresql_grant" "migrator_schema" {
+  count       = local.has_pg ? 1 : 0
+  database    = local.pg_name
+  role        = local.pg_migrator
+  schema      = "public"
+  object_type = "schema"
+  # CREATE and USAGE. Since PostgreSQL 15 `public` grants CREATE to nobody by default,
+  # which is why `CREATE SCHEMA` and `CREATE TABLE` both failed with
+  # `permission denied for database` / `for schema public`.
+  privileges = ["CREATE", "USAGE"]
+
+  depends_on = [postgresql_grant.migrator_create_db]
 }
 
 # ── What the RUNTIME role may do — §5d, §8 ───────────────────────────────────
