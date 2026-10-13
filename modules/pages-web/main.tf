@@ -15,6 +15,20 @@ resource "cloudflare_pages_project" "this" {
       environment_variables = var.production_env_vars
     }
   }
+
+  # SECRETS ARE NOT THIS MODULE'S. A Pages secret (a Function's signing key, an API token) is set out of band with
+  # `wrangler pages secret put` or the dashboard, because a value written through Terraform lands in state in clear
+  # text. The provider (cloudflare ~> 4.0) never reads a secret back from the API: `secrets` is filled from the prior
+  # state/config only, and the plain `environment_variables` it reads exclude secret_text variables. So a secret set by
+  # hand does not read as drift today. This makes that a guarantee instead of a property of one provider version: should
+  # a provider release start reading `secrets` (or a consumer ever set the attribute), a plan will not try to reconcile
+  # it away and so remove a secret the Functions are running on.
+  lifecycle {
+    ignore_changes = [
+      deployment_configs[0].production[0].secrets,
+      deployment_configs[0].preview[0].secrets,
+    ]
+  }
 }
 
 # ── Custom domain attached to the project ─────────────────────────────────────
