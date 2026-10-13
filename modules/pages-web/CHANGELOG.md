@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/quynhonsemiconductor/tf-modules/compare/pages-web-v1.0.1...pages-web-v1.0.2) (2026-10-13)
+
+
+### Bug Fixes
+
+* **pages-web:** ignore Pages secrets that are set outside Terraform ([#160](https://github.com/quynhonsemiconductor/tf-modules/issues/160)) ([90fe741](https://github.com/quynhonsemiconductor/tf-modules/commit/90fe7419cb56f0baff2942be8abd78ecfe72f056))
+
 ## [1.0.1](https://github.com/QNSC-VN/qnsc-tf-modules/compare/pages-web-v1.0.0...pages-web-v1.0.1) (2026-07-16)
 
 
