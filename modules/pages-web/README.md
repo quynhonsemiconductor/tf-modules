@@ -40,6 +40,18 @@ wrangler pages deploy apps/web/dist \
   --branch main
 ```
 
+## Secrets
+
+Pages **secrets** (a Pages Function's signing key, say) are set out of band, never through this module:
+
+```bash
+wrangler pages secret put EDGE_CLIENT_IP_SECRET --project-name "$(tofu output -raw web_pages_project)"
+```
+
+A value written through Terraform is stored in state in clear text, so the module has no `secrets` input. The project's
+`secrets` are `ignore_changes`, so a secret set by hand is never planned away. A secret applies to NEW deployments only:
+redeploy after setting or rotating one.
+
 ## Inputs
 
 | Name | Description | Default |
