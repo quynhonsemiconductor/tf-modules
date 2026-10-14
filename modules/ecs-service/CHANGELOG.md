@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/quynhonsemiconductor/tf-modules/compare/ecs-service-v2.4.0...ecs-service-v2.5.0) (2026-10-14)
+
+
+### Features
+
+* **ecs-service:** container_depends_on and stop_timeout for the main container ([#162](https://github.com/quynhonsemiconductor/tf-modules/issues/162)) ([b3cbc1d](https://github.com/quynhonsemiconductor/tf-modules/commit/b3cbc1d0b97dadc0c2d2757892b773710e00d979))
+
 ## [2.4.0](https://github.com/quynhonsemiconductor/tf-modules/compare/ecs-service-v2.3.2...ecs-service-v2.4.0) (2026-09-16)
 
 
