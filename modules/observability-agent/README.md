@@ -93,3 +93,17 @@ ADOT Collector version: v0.43.3
 A deliberately broken config under the same harness exits with
 `Error: invalid configuration: …`, so a clean start is a meaningful result rather
 than an absence of output.
+
+## Diagnostic: `debug_metrics`
+
+For finding a series that two writers emit with the **same timestamp** (Grafana Cloud discards those as `sample_duplicate_timestamp`). Off by default; turn it on in
+ONE develop stack, read the sidecar's log stream, turn it off.
+
+- Adds the collector's `debug` exporter (`verbosity: detailed`) to the **metrics** pipeline only. Every datapoint is logged with its resource, labels,
+  `Timestamp` and `Value`. A duplicate is the same series and the same `Timestamp` appearing twice with different values.
+- Raises the collector's own log level to `info` while it is on, because the debug exporter writes at info and the default level is `warn`.
+- `debug_sampling_initial` (1000/s) and `debug_sampling_thereafter` (1) keep everything in a quiet develop task.
+- Cost: it logs every datapoint to CloudWatch, and the values are application data. **Do not leave it on.**
+
+Verified against the real image (`aws-otel-collector:v0.43.3`): with the option on, a posted OTLP batch of two datapoints with one timestamp is logged as two
+`NumberDataPoints` with the same `Timestamp` and different `Value`s; with it off, the rendered config is identical to before (`exporters: [otlphttp]`).
