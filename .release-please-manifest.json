@@ -7,7 +7,7 @@
   "modules/dns-record": "1.1.0",
   "modules/ecr": "2.1.0",
   "modules/ecs-cluster": "2.0.0",
-  "modules/ecs-service": "2.4.0",
+  "modules/ecs-service": "2.5.0",
   "modules/iam-oidc": "3.0.1",
   "modules/messaging": "1.1.0",
   "modules/network": "1.4.0",
