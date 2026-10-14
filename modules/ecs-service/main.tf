@@ -259,7 +259,7 @@ resource "aws_ecs_task_definition" "this" {
   }
 
   container_definitions = jsonencode(concat([
-    {
+    merge({
       name      = var.service_name
       image     = var.image_uri
       essential = true
@@ -297,7 +297,17 @@ resource "aws_ecs_task_definition" "this" {
         retries     = 3
         startPeriod = 30
       } : null
-    }
+      },
+      # MERGED IN ONLY WHEN SET, not `= null`: a null key still appears in the JSON, and any change to this string replaces the task definition of EVERY
+      # caller on upgrade. With both variables at their defaults the rendered JSON is byte-identical to before.
+      #
+      # dependsOn: ECS starts containers in dependency order and STOPS them in reverse. Without it SIGTERM reaches the app and its telemetry sidecar at the
+      # same moment, the collector exits at once, and the app's "flush telemetry" shutdown step (5 s) times out against a collector that is already gone.
+      length(var.container_depends_on) > 0 ? {
+        dependsOn = [for d in var.container_depends_on : { containerName = d.container_name, condition = d.condition }]
+      } : {},
+      var.stop_timeout != null ? { stopTimeout = var.stop_timeout } : {}
+    )
   ], var.additional_containers))
 
   tags = var.tags
