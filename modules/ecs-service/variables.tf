@@ -201,6 +201,42 @@ variable "cpu_architecture" {
     error_message = "cpu_architecture must be X86_64 or ARM64."
   }
 }
+variable "container_depends_on" {
+  description = <<-EOT
+    `dependsOn` for the MAIN container. ECS starts containers in dependency order and stops them in REVERSE: a main container that depends on its
+    telemetry sidecar (`{ container_name = "otel-agent", condition = "START" }`) is stopped FIRST and the sidecar after it, so the app's shutdown flush
+    reaches a live collector. Without it both get SIGTERM at once.
+
+    `START` is the right condition for a sidecar that has no health check (the ADOT image has none): it only orders start and stop. Default empty: the
+    task definition is unchanged.
+  EOT
+  type = list(object({
+    container_name = string
+    condition      = string
+  }))
+  default = []
+
+  validation {
+    condition     = alltrue([for d in var.container_depends_on : contains(["START", "COMPLETE", "SUCCESS", "HEALTHY"], d.condition)])
+    error_message = "container_depends_on condition must be START, COMPLETE, SUCCESS or HEALTHY."
+  }
+}
+
+variable "stop_timeout" {
+  description = <<-EOT
+    `stopTimeout` of the MAIN container, in seconds: how long ECS waits after SIGTERM before SIGKILL. null (default) leaves the ECS default (30 s on Fargate)
+    and the task definition unchanged. It must exceed the app's own shutdown deadline (the shared graceful shutdown defaults to 25 s), or the app is killed
+    mid-flush. Fargate allows 2 to 120.
+  EOT
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.stop_timeout == null ? true : (var.stop_timeout >= 2 && var.stop_timeout <= 120)
+    error_message = "stop_timeout must be between 2 and 120 seconds (Fargate), or null."
+  }
+}
+
 variable "additional_containers" {
   type        = any
   default     = []

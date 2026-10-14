@@ -69,3 +69,15 @@ See `variables.tf` for the full list.
 
 - OpenTofu / Terraform `>= 1.9.0`
 - AWS provider `>= 5.0`
+
+## Stopping the app before its telemetry sidecar (`container_depends_on`, `stop_timeout`)
+
+ECS sends SIGTERM to every container of a task at once. With a collector sidecar the collector exits immediately, and the app's own shutdown step that flushes
+telemetry (5 s) times out against a collector that is already gone. `dependsOn` fixes the ORDER: ECS stops containers in the reverse of their dependencies.
+
+```hcl
+container_depends_on = [{ container_name = "otel-agent", condition = "START" }]   # the app now stops first
+stop_timeout         = null                                                      # default 30 s; must exceed the app's shutdown deadline (25 s)
+```
+
+Both default to "unset", and then the rendered container definition is byte-identical to before (no `null` keys, so upgrading replaces no task definition).
