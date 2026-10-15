@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/quynhonsemiconductor/tf-modules/compare/observability-agent-v1.0.1...observability-agent-v1.1.0) (2026-10-15)
+
+
+### Features
+
+* **observability-agent:** a develop-only, off-by-default debug exporter for metrics ([#161](https://github.com/quynhonsemiconductor/tf-modules/issues/161)) ([82b7045](https://github.com/quynhonsemiconductor/tf-modules/commit/82b7045369ccc512d83e3513492003beab36a54c))
+
 ## [1.0.1](https://github.com/QNSC-VN/qnsc-tf-modules/compare/observability-agent-v1.0.0...observability-agent-v1.0.1) (2026-08-30)
 
 
