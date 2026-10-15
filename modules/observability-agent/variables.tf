@@ -91,6 +91,20 @@ variable "log_level" {
   default     = "warn"
 }
 
+variable "debug_metrics" {
+  description = <<-EOT
+    DIAGNOSTIC, for a develop stack and for a limited time: also write every metric datapoint (name, labels, timestamp, value) to the collector's own
+    log (the sidecar's awslogs stream) with the `debug` exporter at verbosity `detailed`. Meant for finding a series that two writers emit with the
+    same timestamp (Grafana Cloud discards those as `sample_duplicate_timestamp`): read the stream and look for one series, one timestamp, twice.
+
+    Default off. Do NOT leave it on: it logs every datapoint, which is a lot of CloudWatch ingestion (see the README for the measured cost per datapoint),
+    and the values are application data. Metrics pipeline only (no traces). Ignored when `metrics_enabled` is false. There is no sampling knob: the
+    exporter's sampling cannot thin datapoints (README), so the lever is the time you leave it on.
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "metrics_enabled" {
   description = "Forward the metrics pipeline. Traces are usually adopted first, and a metrics pipeline with no metrics is harmless but noisy in the collector log."
   type        = bool

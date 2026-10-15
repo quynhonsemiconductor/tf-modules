@@ -34,6 +34,13 @@ locals {
   # guarantee — keep both twin modules' gating logic identical).
   enabled = var.otlp_endpoint != ""
 
+  # The diagnostic exporter only makes sense on a metrics pipeline that exists.
+  debug_metrics = var.debug_metrics && var.metrics_enabled
+
+  # The debug exporter writes at INFO, so a collector that logs only warn/error (the default) would swallow it and the diagnostic would look like it
+  # produced nothing. Raise to info while it is on; an explicit info/debug level is left alone.
+  log_level = local.debug_metrics && contains(["warn", "error"], var.log_level) ? "info" : var.log_level
+
   # Collector configuration, passed inline via AOT_CONFIG_CONTENT rather than baked
   # into an image or fetched from S3/SSM — it keeps the config reviewable in the
   # same diff as the thing it configures.
@@ -82,7 +89,7 @@ locals {
       }
     }
 
-    exporters = {
+    exporters = merge({
       otlphttp = {
         endpoint = var.otlp_endpoint
         headers  = { authorization = "$${env:OBSERVABILITY_TOKEN}" }
@@ -97,7 +104,21 @@ locals {
         }
         sending_queue = { enabled = true, queue_size = 512 }
       }
-    }
+      },
+      # DIAGNOSTIC (var.debug_metrics, default off): every datapoint with its timestamp, in this container's own log.
+      local.debug_metrics ? {
+        debug = {
+          verbosity = "detailed"
+          # No variable for this on purpose. The exporter's (zap) sampling counts log records of IDENTICAL text,
+          # and every datapoint batch is a different text, so sampling cannot reduce the volume of the datapoints:
+          # measured against v0.43.3 with initial=1 / thereafter=1000, all 30 distinct batches were still logged
+          # in full (only the repeated one-line "Metrics {...}" count header was thinned). Keep everything, and
+          # keep the count header too, so the line count of a batch can be checked against what was logged.
+          sampling_initial    = 1000
+          sampling_thereafter = 1
+        }
+      } : {}
+    )
 
     service = merge(
       {
@@ -113,7 +134,7 @@ locals {
             metrics = {
               receivers  = ["otlp"]
               processors = ["memory_limiter", "resource", "batch"]
-              exporters  = ["otlphttp"]
+              exporters  = local.debug_metrics ? ["otlphttp", "debug"] : ["otlphttp"]
             }
           } : {}
         )
@@ -123,7 +144,7 @@ locals {
       # CloudWatch via the awslogs driver where the compliance retention lives.
       # `trace.id` is on every log line, so log↔trace correlation works without
       # moving logs at all.
-      { telemetry = { logs = { level = var.log_level } } }
+      { telemetry = { logs = { level = local.log_level } } }
     )
   })
 }
