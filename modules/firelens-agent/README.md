@@ -175,7 +175,9 @@ plugin silently fell back to serializing the ENTIRE record — every one of
 those ECS metadata fields, JSON-encoded — as the OTel log body, instead of
 just the app's own line. Found and fixed together with the resource-attribute
 work above, verified against the same local mock receiver: with
-`logs_body_key log`, the body is exactly `{"level":30,"msg":"...",...}`, no
+`logs_body_key log`, the body is exactly the application's own JSON line (for our Node
+services `{"level":"info","time":"2026-10-15T07:00:00.000Z","msg":"...","service":"...","env":"...","version":"..."}`: `level` is a word and
+`time` ISO-8601 since observability 0.5.0; earlier releases wrote `{"level":30,"time":1760000000000,...}`), no
 envelope noise.
 
 ## The token
