@@ -97,28 +97,12 @@ variable "debug_metrics" {
     log (the sidecar's awslogs stream) with the `debug` exporter at verbosity `detailed`. Meant for finding a series that two writers emit with the
     same timestamp (Grafana Cloud discards those as `sample_duplicate_timestamp`): read the stream and look for one series, one timestamp, twice.
 
-    Default off. Do NOT leave it on: it logs every datapoint, which is a lot of CloudWatch ingestion, and the values are application data. Metrics
-    pipeline only (no traces). Ignored when `metrics_enabled` is false.
+    Default off. Do NOT leave it on: it logs every datapoint, which is a lot of CloudWatch ingestion (see the README for the measured cost per datapoint),
+    and the values are application data. Metrics pipeline only (no traces). Ignored when `metrics_enabled` is false. There is no sampling knob: the
+    exporter's sampling cannot thin datapoints (README), so the lever is the time you leave it on.
   EOT
   type        = bool
   default     = false
-}
-
-variable "debug_sampling_initial" {
-  description = "debug exporter: log records per second always kept before `debug_sampling_thereafter` applies. High by default so nothing is hidden in a quiet develop task."
-  type        = number
-  default     = 1000
-}
-
-variable "debug_sampling_thereafter" {
-  description = "debug exporter: after `debug_sampling_initial` in a second, keep one record in this many. 1 = keep all."
-  type        = number
-  default     = 1
-
-  validation {
-    condition     = var.debug_sampling_thereafter >= 1
-    error_message = "debug_sampling_thereafter must be at least 1."
-  }
 }
 
 variable "metrics_enabled" {

@@ -108,9 +108,14 @@ locals {
       # DIAGNOSTIC (var.debug_metrics, default off): every datapoint with its timestamp, in this container's own log.
       local.debug_metrics ? {
         debug = {
-          verbosity           = "detailed"
-          sampling_initial    = var.debug_sampling_initial
-          sampling_thereafter = var.debug_sampling_thereafter
+          verbosity = "detailed"
+          # No variable for this on purpose. The exporter's (zap) sampling counts log records of IDENTICAL text,
+          # and every datapoint batch is a different text, so sampling cannot reduce the volume of the datapoints:
+          # measured against v0.43.3 with initial=1 / thereafter=1000, all 30 distinct batches were still logged
+          # in full (only the repeated one-line "Metrics {...}" count header was thinned). Keep everything, and
+          # keep the count header too, so the line count of a batch can be checked against what was logged.
+          sampling_initial    = 1000
+          sampling_thereafter = 1
         }
       } : {}
     )

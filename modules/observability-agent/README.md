@@ -99,11 +99,41 @@ than an absence of output.
 For finding a series that two writers emit with the **same timestamp** (Grafana Cloud discards those as `sample_duplicate_timestamp`). Off by default; turn it on in
 ONE develop stack, read the sidecar's log stream, turn it off.
 
-- Adds the collector's `debug` exporter (`verbosity: detailed`) to the **metrics** pipeline only. Every datapoint is logged with its resource, labels,
-  `Timestamp` and `Value`. A duplicate is the same series and the same `Timestamp` appearing twice with different values.
+- Adds the collector's `debug` exporter (`verbosity: detailed`) to the **metrics** pipeline only, **after** the `batch` processor: what it logs is what `otlphttp`
+  sends. Every datapoint is logged with its resource attributes, scope, labels, `Timestamp` and value. A duplicate is the same series and the same `Timestamp`
+  appearing twice with different values.
 - Raises the collector's own log level to `info` while it is on, because the debug exporter writes at info and the default level is `warn`.
-- `debug_sampling_initial` (1000/s) and `debug_sampling_thereafter` (1) keep everything in a quiet develop task.
-- Cost: it logs every datapoint to CloudWatch, and the values are application data. **Do not leave it on.**
+- Off (the default): the rendered collector config is **byte-identical** to the previous version (checked by rendering both).
 
-Verified against the real image (`aws-otel-collector:v0.43.3`): with the option on, a posted OTLP batch of two datapoints with one timestamp is logged as two
-`NumberDataPoints` with the same `Timestamp` and different `Value`s; with it off, the rendered config is identical to before (`exporters: [otlphttp]`).
+### Where it goes and how to read it
+
+The sidecar's `awslogs` stream: log group `var.log_group`, stream `<var.name>/<var.name>/<task id>` (one stream per task; the task id tells old tasks from new ones in a
+rolling deploy). The driver sends **one CloudWatch event per line**, and one batch is a multi-line text block that starts with a
+`<ts>  info  ResourceMetrics #0` line, so a dump has to be read **in order per stream** to be reassembled; the analysis script in `quynhonsemiconductor/ci` does that.
+(No `awslogs-multiline-pattern` is set: a block can exceed CloudWatch's 256 KB event limit and would be cut in the middle, which is worse than one event per line.)
+
+### Cost: there is no sampling knob, on purpose
+
+Measured against `aws-otel-collector:v0.43.3`, counting CloudWatch's 26-byte per-event overhead:
+
+| datapoint | lines | bytes in CloudWatch |
+| --- | --- | --- |
+| a counter / gauge with 2 labels | 7 | ~0.4 KB |
+| a histogram with 15 explicit bounds (16 buckets) | 42 | ~2.2 KB |
+
+At a 70/30 mix that is ~0.9 KB per datapoint. So **3,600 datapoints a minute is ~3.3 MB/min, ~200 MB/hour, ~5 GB/day (~US$2.5/day** at US$0.50/GB ingested). If
+"3,600 series" means series that are each exported every 10 s (the develop export interval) it is 21,600 datapoints/min, six times that: ~30 GB/day (~US$15/day).
+A 20-minute window is 66 to 400 MB. Fine for a time-boxed run; **not** something to leave on.
+
+The exporter's own sampling does not help: it counts log records of *identical text*, and every batch is different text. Measured with `sampling_initial: 1,
+sampling_thereafter: 1000`: all 30 distinct batches were still logged in full; only the repeated one-line `Metrics {...}` count header was thinned. So the module keeps
+everything (`sampling_initial: 1000`, `sampling_thereafter: 1`) and exposes no sampling variable; the lever is how long it is on.
+
+### Things to know
+
+- The values are application data, and the labels may carry route templates: read access to the log group is the access control. Do not leave it on.
+- The awslogs driver is blocking by default. A very slow CloudWatch could back up the collector's stdout; the `memory_limiter` then refuses data and the app's SDK
+  retries. Acceptable for a develop task for a few hours.
+
+Verified against the real image (`aws-otel-collector:v0.43.3`), with the config this module renders: on, a posted OTLP batch is logged as `NumberDataPoints` blocks
+including two with one timestamp and different values; off, the container logs nothing at all (warn level).
