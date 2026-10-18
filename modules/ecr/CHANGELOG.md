@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/quynhonsemiconductor/tf-modules/compare/ecr-v2.1.0...ecr-v2.2.0) (2026-10-18)
+
+
+### Features
+
+* **ecr:** keep 10 build images by default (was 20) ([#167](https://github.com/quynhonsemiconductor/tf-modules/issues/167)) ([bad95bd](https://github.com/quynhonsemiconductor/tf-modules/commit/bad95bd8b1658999c2ad1b61838ef37c6af46279))
+
 ## [2.1.0](https://github.com/quynhonsemiconductor/tf-modules/compare/ecr-v2.0.0...ecr-v2.1.0) (2026-09-16)
 
 
