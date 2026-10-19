@@ -65,11 +65,26 @@ variable "build_tag_prefix" {
 
 variable "keep_build_count" {
   type        = number
-  default     = 20
+  default     = 10
   description = <<-EOT
-    Most-recent per-commit BUILD images to keep. Trimmed harder than releases: on a
-    busy repo these accumulate at several per day and nothing pins them once the
+    Most-recent per-commit BUILD (`sha-*`) images to keep. Trimmed harder than releases:
+    on a busy repo these accumulate at several per day and nothing pins them once the
     commit is superseded.
+
+    Default 10 since ecr-v2.2.0 (was 20; owner decision 2026-10-18, to hold fewer build
+    images org-wide). Rollback is unaffected: every image production runs is promoted to a
+    `v*` tag, and the release rule (`release_retention_days`) keeps those on its own clock;
+    an image carrying both tags is governed by the release rule, which has the lower
+    priority number. What 10 builds cost you is the number of commits you can redeploy to
+    without a rebuild, in develop.
+
+    The count is of tagged `sha-*` images, which for a multi-architecture build is the
+    manifest list, one per commit. Its per-architecture children and attestations are
+    untagged and are not counted; ECR keeps them while a list that references them lives.
+
+    BEFORE LOWERING THIS ON A LIVE REPOSITORY, preview it and check that nothing a running
+    task definition references would expire (see `release_retention_days` for the preview
+    command). A caller that sets its own value (qnsc-kb-backend passes 5) is unaffected.
   EOT
 }
 
