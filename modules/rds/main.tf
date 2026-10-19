@@ -5,6 +5,9 @@
 # =============================================================================
 
 locals {
+  # engine_version may be a major ("18") or a minor ("18.6"); the parameter group family is per major.
+  engine_major = split(".", var.engine_version)[0]
+
   # One list, used by both the instance's export setting and the log groups below, so
   # adding a log type cannot enable the export while leaving its group unmanaged.
   exported_logs = ["postgresql", "upgrade"]
@@ -26,8 +29,16 @@ resource "aws_db_subnet_group" "this" {
 # Optional parameter group: pg_stat_statements + query/connection logging.
 resource "aws_db_parameter_group" "this" {
   count  = var.enable_parameter_group ? 1 : 0
-  name   = "${var.identifier}-pg${var.engine_version}"
-  family = "postgres${var.engine_version}"
+  name   = "${var.identifier}-pg${local.engine_major}"
+  family = "postgres${local.engine_major}"
+
+  # The name and family change with the major, which is a replacement. Create the new group
+  # before the instance is moved onto it and the old one is destroyed; the default destroy-first
+  # order leaves the instance attached to a group that is being deleted, and the upgrade stalls.
+  # The name is per major, so the new and old groups never share a name.
+  lifecycle {
+    create_before_destroy = true
+  }
 
   parameter {
     name         = "shared_preload_libraries"
@@ -171,8 +182,9 @@ resource "aws_db_instance" "this" {
   # Default stays `false`, so this is a no-op for every existing caller and the plan is
   # empty. It exists so develop — where a restart costs nothing — can ask for a change to
   # actually take effect, rather than silently deferring it for six days.
-  apply_immediately     = var.apply_immediately
-  copy_tags_to_snapshot = true
+  apply_immediately           = var.apply_immediately
+  allow_major_version_upgrade = var.allow_major_version_upgrade
+  copy_tags_to_snapshot       = true
 
   performance_insights_enabled          = true
   performance_insights_retention_period = 7 # free tier
@@ -212,6 +224,16 @@ resource "aws_db_instance" "this" {
     # Create-time only: see snapshot_identifier above for why letting this change is
     # equivalent to letting an edit destroy a database.
     ignore_changes = [snapshot_identifier]
+
+    precondition {
+      condition     = !var.allow_major_version_upgrade || var.apply_immediately
+      error_message = "allow_major_version_upgrade requires apply_immediately = true. Without it AWS holds the major upgrade in PendingModifiedValues until the maintenance window, and state and reality disagree."
+    }
+
+    precondition {
+      condition     = can(regex("^[0-9]+$", var.engine_version)) || !var.auto_minor_version_upgrade
+      error_message = "A full-minor engine_version (e.g. \"18.6\") pins the minor, so auto_minor_version_upgrade must be false. Pin the major (\"18\") to keep minor patching on."
+    }
   }
 
   tags = merge(var.tags, { Name = var.identifier })
