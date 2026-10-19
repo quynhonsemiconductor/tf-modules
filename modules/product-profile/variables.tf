@@ -70,9 +70,11 @@ variable "postgres" {
     # enforced by a precondition on the instance: allow_major_version_upgrade needs apply_immediately.
     allow_major_version_upgrade = optional(bool, false)
     apply_immediately           = optional(bool, false)
-    instance_class              = optional(string, "") # dedicated only; "" picks from size
-    storage_gb                  = optional(number, 20)
-    multi_az                    = optional(bool, false)
+    # Minor patching on the instance (see modules/rds). true keeps the module default.
+    auto_minor_version_upgrade = optional(bool, true)
+    instance_class             = optional(string, "") # dedicated only; "" picks from size
+    storage_gb                 = optional(number, 20)
+    multi_az                   = optional(bool, false)
     # SCHEMAS THE APPLICATION READS AND WRITES.
     #
     # Not a style question: rova's migrations put nothing in `public`. They build domain

@@ -80,6 +80,7 @@ module "rds" {
 
   allow_major_version_upgrade = var.postgres.allow_major_version_upgrade
   apply_immediately           = var.postgres.apply_immediately
+  auto_minor_version_upgrade  = var.postgres.auto_minor_version_upgrade
 
   allocated_storage_gb = var.postgres.storage_gb
   multi_az             = var.postgres.multi_az
