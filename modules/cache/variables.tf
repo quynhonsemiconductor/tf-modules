@@ -61,7 +61,7 @@ variable "node_type" {
 variable "node_engine_version" {
   type        = string
   default     = "7.2"
-  description = "Valkey engine version (node mode). Default \"7.2\" is unchanged for existing callers; \"8.1\" opts in (parameter group family default.valkey8)."
+  description = "Valkey engine version (node mode). Default \"7.2\" is unchanged for existing callers; \"8.2\" opts in (parameter group family default.valkey8)."
 }
 
 variable "tags" {

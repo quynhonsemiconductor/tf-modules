@@ -5,6 +5,9 @@
 # =============================================================================
 
 locals {
+  # engine_version may be a major ("18") or a minor ("18.6"); the parameter group family is per major.
+  engine_major = split(".", var.engine_version)[0]
+
   # One list, used by both the instance's export setting and the log groups below, so
   # adding a log type cannot enable the export while leaving its group unmanaged.
   exported_logs = ["postgresql", "upgrade"]
@@ -26,8 +29,8 @@ resource "aws_db_subnet_group" "this" {
 # Optional parameter group: pg_stat_statements + query/connection logging.
 resource "aws_db_parameter_group" "this" {
   count  = var.enable_parameter_group ? 1 : 0
-  name   = "${var.identifier}-pg${var.engine_version}"
-  family = "postgres${var.engine_version}"
+  name   = "${var.identifier}-pg${local.engine_major}"
+  family = "postgres${local.engine_major}"
 
   parameter {
     name         = "shared_preload_libraries"

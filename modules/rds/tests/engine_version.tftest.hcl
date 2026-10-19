@@ -70,3 +70,22 @@ run "opt_in_pg18_with_upgrade" {
     error_message = "apply_immediately must pass through when set"
   }
 }
+
+# A full minor (18.6) is accepted: the family and parameter group name stay per major.
+run "minor_version_uses_major_family" {
+  command = plan
+
+  variables {
+    engine_version = "18.6"
+  }
+
+  assert {
+    condition     = aws_db_instance.this.engine_version == "18.6"
+    error_message = "engine_version \"18.6\" must reach aws_db_instance unchanged"
+  }
+
+  assert {
+    condition     = aws_db_parameter_group.this[0].family == "postgres18"
+    error_message = "a minor engine_version must still use the postgres18 family"
+  }
+}

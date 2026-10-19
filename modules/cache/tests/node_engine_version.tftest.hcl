@@ -18,16 +18,16 @@ run "default_stays_valkey72" {
   }
 }
 
-# Opt-in: node engine 8.1.
+# Opt-in: node engine 8.2.
 run "opt_in_valkey81" {
   command = plan
 
   variables {
-    node_engine_version = "8.1"
+    node_engine_version = "8.2"
   }
 
   assert {
-    condition     = aws_elasticache_replication_group.this[0].engine_version == "8.1"
-    error_message = "node_engine_version \"8.1\" must reach the replication group"
+    condition     = aws_elasticache_replication_group.this[0].engine_version == "8.2"
+    error_message = "node_engine_version \"8.2\" must reach the replication group"
   }
 }

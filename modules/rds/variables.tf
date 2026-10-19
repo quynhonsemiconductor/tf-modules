@@ -16,7 +16,11 @@ variable "security_group_id" {
 variable "engine_version" {
   type        = string
   default     = "17"
-  description = "Postgres major version (e.g. \"17\", \"18\")."
+  description = <<-EOT
+    Postgres version: a major (\"17\", \"18\") or a full minor (\"18.6\"). The parameter group
+    family is always the major (postgres18). Pin a full minor in callers that want one; a bare
+    major lets AWS choose the minor.
+  EOT
 }
 
 variable "auto_minor_version_upgrade" {
