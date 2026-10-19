@@ -171,8 +171,9 @@ resource "aws_db_instance" "this" {
   # Default stays `false`, so this is a no-op for every existing caller and the plan is
   # empty. It exists so develop — where a restart costs nothing — can ask for a change to
   # actually take effect, rather than silently deferring it for six days.
-  apply_immediately     = var.apply_immediately
-  copy_tags_to_snapshot = true
+  apply_immediately           = var.apply_immediately
+  allow_major_version_upgrade = var.allow_major_version_upgrade
+  copy_tags_to_snapshot       = true
 
   performance_insights_enabled          = true
   performance_insights_retention_period = 7 # free tier

@@ -137,6 +137,25 @@ variable "enable_parameter_group" {
   description = "Create a parameter group with pg_stat_statements + query/connection logging."
 }
 
+variable "allow_major_version_upgrade" {
+  type    = bool
+  default = false
+
+  description = <<-EOT
+    Allow `engine_version` to move to a higher MAJOR version on an existing instance (17 → 18).
+
+    `false` (the default) keeps the old behaviour: a major change is refused at plan/apply time,
+    so no existing caller can cross a major by accident. Set `true` for the one apply that
+    performs the upgrade, then set it back to `false` in the next change.
+
+    The upgrade itself runs in place and is not reversible by AWS: roll back by restoring a
+    snapshot taken BEFORE the apply. Pair this with `apply_immediately = true` so AWS starts
+    the upgrade at apply time instead of at the maintenance window, and take a manual
+    snapshot first. Without `apply_immediately`, the major stays in `PendingModifiedValues`
+    until the window and state and reality disagree (see that variable).
+  EOT
+}
+
 variable "apply_immediately" {
   type    = bool
   default = false
