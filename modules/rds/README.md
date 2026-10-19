@@ -36,8 +36,8 @@ module "rds" {
 | Name | Default | Description |
 | :--- | :------ | :---------- |
 | `identifier` | — | DB identifier |
-| `engine_version` | `17` | Postgres major (`17`, `18`) or a full minor (`18.6`). The parameter group family is always the major |
-| `allow_major_version_upgrade` | `false` | Permit a major change on an existing instance. One apply, then back to `false` |
+| `engine_version` | `17` | Postgres major `16`–`19`, recommended as the major only (`18`) with `auto_minor_version_upgrade = true`. A full minor (`18.6`) requires `auto_minor_version_upgrade = false`. The parameter group family is always the major |
+| `allow_major_version_upgrade` | `false` | Permit a major change on an existing instance. Requires `apply_immediately = true`. One apply, then back to `false` |
 | `instance_class` | — | e.g. db.r7g.large |
 | `multi_az` / `deletion_protection` | `false` | Prod: true |
 | `kms_key_arn` | `""` | Storage CMK (empty = AWS-managed) |

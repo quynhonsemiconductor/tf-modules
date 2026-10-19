@@ -61,7 +61,30 @@ variable "node_type" {
 variable "node_engine_version" {
   type        = string
   default     = "7.2"
-  description = "Valkey engine version (node mode). Default \"7.2\" is unchanged for existing callers; \"8.2\" opts in (parameter group family default.valkey8)."
+  description = <<-EOT
+    Valkey engine version (node mode). Default "7.2" is unchanged for existing callers.
+
+    "8.1" is the Valkey 8 target and matches the local and CI images. ElastiCache's "8.2" is
+    open-source Valkey 8.1 plus the valkey-search module, not a newer Valkey, so there is no
+    separate 8.2 target here. AWS selects the default parameter group for the version.
+  EOT
+
+  validation {
+    condition     = contains(["7.2", "8.0", "8.1"], var.node_engine_version)
+    error_message = "node_engine_version must be one of \"7.2\", \"8.0\", \"8.1\"."
+  }
+}
+
+variable "apply_immediately" {
+  type        = bool
+  default     = false
+  description = "Node mode: apply engine and node changes at once instead of in the maintenance window. Leave false for production; true where a restart is free (develop)."
+}
+
+variable "maintenance_window" {
+  type        = string
+  default     = null
+  description = "Node mode: weekly maintenance window, e.g. \"sun:05:00-sun:06:00\". Null keeps the AWS default."
 }
 
 variable "tags" {

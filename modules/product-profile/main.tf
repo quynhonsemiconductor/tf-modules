@@ -78,6 +78,9 @@ module "rds" {
   engine_version    = var.postgres.engine_version
   instance_class    = local.instance_class
 
+  allow_major_version_upgrade = var.postgres.allow_major_version_upgrade
+  apply_immediately           = var.postgres.apply_immediately
+
   allocated_storage_gb = var.postgres.storage_gb
   multi_az             = var.postgres.multi_az
   db_name              = local.pg_name

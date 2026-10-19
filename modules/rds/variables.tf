@@ -17,10 +17,18 @@ variable "engine_version" {
   type        = string
   default     = "17"
   description = <<-EOT
-    Postgres version: a major (\"17\", \"18\") or a full minor (\"18.6\"). The parameter group
-    family is always the major (postgres18). Pin a full minor in callers that want one; a bare
-    major lets AWS choose the minor.
+    Postgres version: a major ("17", "18") or a full minor ("18.6"). The parameter group family
+    is always the major (postgres18).
+
+    Recommended: pin the major ("18") and keep auto_minor_version_upgrade = true, so AWS applies
+    minor patches. A full minor pins the minor, which requires auto_minor_version_upgrade = false
+    (enforced by a precondition on the instance).
   EOT
+
+  validation {
+    condition     = can(regex("^1[6-9](\\.[0-9]+)?$", var.engine_version))
+    error_message = "engine_version must be a Postgres major 16 to 19, optionally with a minor (\"18\" or \"18.6\")."
+  }
 }
 
 variable "auto_minor_version_upgrade" {
@@ -148,9 +156,10 @@ variable "allow_major_version_upgrade" {
   description = <<-EOT
     Allow `engine_version` to move to a higher MAJOR version on an existing instance (17 → 18).
 
-    `false` (the default) keeps the old behaviour: a major change is refused at plan/apply time,
-    so no existing caller can cross a major by accident. Set `true` for the one apply that
-    performs the upgrade, then set it back to `false` in the next change.
+    `false` (the default) keeps the old behaviour: AWS refuses a major change on an existing
+    instance during apply, so no existing caller can cross a major by accident. Set `true` for the
+    one apply that performs the upgrade, then set it back to `false` in the next change.
+    Requires `apply_immediately = true` (a precondition on the instance enforces it).
 
     The upgrade itself runs in place and is not reversible by AWS: roll back by restoring a
     snapshot taken BEFORE the apply. Pair this with `apply_immediately = true` so AWS starts

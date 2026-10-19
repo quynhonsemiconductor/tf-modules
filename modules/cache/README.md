@@ -30,6 +30,17 @@ module "cache" {
 }
 ```
 
+Node mode takes the engine version and apply timing:
+
+```hcl
+  node_engine_version = "8.1"    # Valkey 8 target; default "7.2" is unchanged for existing callers
+  apply_immediately   = true     # develop only: apply now instead of in the maintenance window
+  maintenance_window  = "sun:05:00-sun:06:00"
+```
+
+`node_engine_version` accepts `7.2`, `8.0`, `8.1`. ElastiCache's "8.2" is open-source Valkey 8.1 plus
+the valkey-search module, so it is not a separate target here.
+
 ## Outputs
 
 `endpoint`, `port`, `reader_endpoint` — work in both modes.

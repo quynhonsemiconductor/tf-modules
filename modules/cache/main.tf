@@ -70,6 +70,8 @@ resource "aws_elasticache_replication_group" "this" {
 
   snapshot_retention_limit = var.snapshot_retention_days
   snapshot_window          = "04:00-05:00"
+  maintenance_window       = var.maintenance_window
+  apply_immediately        = var.apply_immediately
 
   tags = merge(var.tags, { Name = var.name })
 }

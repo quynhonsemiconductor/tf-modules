@@ -76,7 +76,8 @@ run "minor_version_uses_major_family" {
   command = plan
 
   variables {
-    engine_version = "18.6"
+    engine_version             = "18.6"
+    auto_minor_version_upgrade = false
   }
 
   assert {
@@ -88,4 +89,40 @@ run "minor_version_uses_major_family" {
     condition     = aws_db_parameter_group.this[0].family == "postgres18"
     error_message = "a minor engine_version must still use the postgres18 family"
   }
+}
+
+# A full minor pins the minor: auto-minor on is refused by a precondition on the instance.
+run "minor_with_auto_minor_is_refused" {
+  command = plan
+
+  variables {
+    engine_version             = "18.6"
+    auto_minor_version_upgrade = true
+  }
+
+  expect_failures = [aws_db_instance.this]
+}
+
+# A major upgrade without apply_immediately would sit in PendingModifiedValues: refused.
+run "major_upgrade_needs_apply_immediately" {
+  command = plan
+
+  variables {
+    engine_version              = "18"
+    allow_major_version_upgrade = true
+    apply_immediately           = false
+  }
+
+  expect_failures = [aws_db_instance.this]
+}
+
+# Only Postgres 16 to 19 are accepted.
+run "unsupported_major_is_refused" {
+  command = plan
+
+  variables {
+    engine_version = "15"
+  }
+
+  expect_failures = [var.engine_version]
 }
