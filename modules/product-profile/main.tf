@@ -293,7 +293,7 @@ resource "postgresql_role" "migrator" {
   # A migration history has to replay in full on an empty database, and rova's does
   # this at 0068:
   #
-  #     CREATE ROLE rally_app NOLOGIN;
+  #     CREATE ROLE rally_app NOLOGIN;  # legacy physical name, do not rename
   #
   # so a migrator without CREATEROLE cannot reach the current schema at all:
   #
