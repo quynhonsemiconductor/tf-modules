@@ -135,6 +135,40 @@ resource "aws_cloudwatch_metric_alarm" "target_unhealthy" {
   tags               = var.tags
 }
 
+# Healthy-host floor, per TARGET GROUP: fires when fewer tasks are registered and healthy
+# behind the ALB than the service's desired count. This is the ECS "running < desired"
+# signal, read from the ALB's own HealthyHostCount, so it needs no Container Insights.
+#
+# Blind spot: a task that never registers with the target group (crash before its first
+# health check, stuck in PROVISIONING) is never counted in HealthyHostCount, so this alarm
+# cannot see it. Only tasks that were registered and then lost show as a shortfall.
+# Desired counts are static inputs: when a service is scaled, update
+# target_group_min_healthy in the same change.
+resource "aws_cloudwatch_metric_alarm" "healthy_hosts_below_desired" {
+  # Same guards as target_unhealthy: needs the ALB dimension, and an environment that is
+  # serving. An idle environment has zero tasks by design.
+  for_each = var.alb_arn != "" && !var.environment_idle ? var.target_group_min_healthy : {}
+
+  alarm_name  = "${var.name}-${each.key}-healthy-hosts-below-desired"
+  namespace   = "AWS/ApplicationELB"
+  metric_name = "HealthyHostCount"
+  dimensions = {
+    LoadBalancer = local.alb_suffix
+    TargetGroup  = local.tg_dimensions[each.key]
+  }
+  statistic           = "Minimum"
+  period              = 60
+  evaluation_periods  = 5
+  threshold           = each.value
+  comparison_operator = "LessThanThreshold"
+  # A target group with no registered targets publishes no datapoint: that is the outage
+  # this alarm exists to catch, so missing data is breaching, as in target_unhealthy.
+  treat_missing_data = "breaching"
+  alarm_actions      = [aws_sns_topic.alarms.arn]
+  ok_actions         = [aws_sns_topic.alarms.arn]
+  tags               = var.tags
+}
+
 # Latency, per TARGET GROUP and gated on traffic volume.
 #
 # Two defects in the previous LoadBalancer-scoped p95 alarm, both of which paged for

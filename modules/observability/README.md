@@ -107,6 +107,7 @@ proportionally higher) and leave both at `0` on any `db.m*`/`db.r*` instance.
 | `thresholds` | object | see module | Per-signal alarm thresholds (all optional, sane defaults). Includes `alb_latency_min_requests` (default 50) and the two opt-in burstable keys below. |
 | `thresholds.rds_cpu_credit_min` | number | `0` | `CPUCreditBalance` floor, in **credits**. `0` disables the alarm. See [Burstable instances](#burstable-instances). |
 | `thresholds.rds_freeable_memory_mb` | number | `0` | `FreeableMemory` floor, in **megabytes** (the alarm converts to bytes; the AWS/RDS metric is in bytes). `0` disables the alarm. |
+| `target_group_min_healthy` | map(number) | `{}` | Service name => desired task count. One `HealthyHostCount` alarm per entry, firing below the count (ALB-side ECS running < desired; no Container Insights). Keys must be in `target_group_arns`. Blind to tasks that never register. Static: update with the desired count. `environment_idle` switches it off. |
 | `thresholds.rds_free_storage_pct` | number | `0` | Free-storage floor as a **percent of `rds_allocated_storage_gb`** (0–100). `0` uses `thresholds.rds_free_bytes`. Needs `rds_allocated_storage_gb`. The value is fixed at apply time: bump `rds_allocated_storage_gb` when autoscaling grows the volume. |
 | `rds_allocated_storage_gb` | number | `0` | Allocated RDS storage in GiB. Read only when `thresholds.rds_free_storage_pct` > 0. |
 | `create_dashboard` | bool | `true` | Create the dashboard. Alarms are created regardless. |

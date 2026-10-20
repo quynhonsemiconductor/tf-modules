@@ -150,6 +150,19 @@ variable "target_group_arns" {
   EOT
 }
 
+variable "target_group_min_healthy" {
+  type        = map(number)
+  default     = {}
+  description = <<-EOT
+    Service name => desired task count. Creates a HealthyHostCount alarm per entry that
+    fires when registered, healthy tasks behind the ALB drop below the count. Keys must be
+    keys of `target_group_arns`; the ALB dimension is required (`alb_arn`).
+
+    Static on purpose: a change of desired count must be made here too. Empty creates none.
+    Not created while `environment_idle` is set.
+  EOT
+}
+
 variable "monitor_target_health" {
   type        = bool
   default     = true
