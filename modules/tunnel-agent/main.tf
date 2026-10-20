@@ -32,7 +32,7 @@
 #   - Host-based routing across products on one shared ALB. Each task now carries its
 #     own ingress.
 #
-# SSE IS THE COMPATIBILITY QUESTION, and it was checked rather than assumed. Rally's
+# SSE IS THE COMPATIBILITY QUESTION, and it was checked rather than assumed. Rova's
 # NotificationSseController writes a `: heartbeat` comment every 25s, which is well
 # inside Cloudflare's ~100s idle timeout — the heartbeat exists precisely to hold
 # connections open through proxies. A workload whose streams are quiet for longer

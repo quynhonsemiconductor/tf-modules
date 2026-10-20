@@ -15,7 +15,7 @@ variable "env" {
     `production`). Becomes `deployment.environment.name`.
 
     Deliberately NOT derived from NODE_ENV: products pin NODE_ENV to "production"
-    outside production (rally's develop does, so a public host cannot expose
+    outside production (rova's develop does, so a public host cannot expose
     passwordless dev-login), which would label every develop signal as production.
   EOT
   type        = string
