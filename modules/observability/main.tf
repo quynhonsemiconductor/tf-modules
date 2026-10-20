@@ -5,6 +5,11 @@ locals {
   # whose premise is "this environment is serving traffic". See var.environment_idle.
   ecs_services = var.environment_idle ? toset([]) : toset(var.ecs_service_names)
 
+  # Percentage of allocated storage wins over the absolute floor when set. The result is a
+  # threshold fixed at apply time: if storage autoscaling grows the volume, bump
+  # rds_allocated_storage_gb to match or the alarm keeps the old allocation's floor.
+  rds_free_storage_threshold_bytes = var.thresholds.rds_free_storage_pct > 0 ? var.thresholds.rds_free_storage_pct / 100 * var.rds_allocated_storage_gb * 1073741824 : var.thresholds.rds_free_bytes
+
   # TargetGroup CloudWatch dimension is likewise the arn suffix: targetgroup/<name>/<id>.
   # Derived once because both per-target-group alarms below need it.
   tg_dimensions = {
@@ -229,10 +234,21 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   statistic           = "Average"
   period              = 300
   evaluation_periods  = 1
-  threshold           = var.thresholds.rds_free_bytes
+  threshold           = local.rds_free_storage_threshold_bytes
   comparison_operator = "LessThanThreshold"
   alarm_actions       = [aws_sns_topic.alarms.arn]
   tags                = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = var.thresholds.rds_free_storage_pct >= 0 && var.thresholds.rds_free_storage_pct <= 100
+      error_message = "thresholds.rds_free_storage_pct must be between 0 and 100."
+    }
+    precondition {
+      condition     = var.thresholds.rds_free_storage_pct == 0 || var.rds_allocated_storage_gb > 0
+      error_message = "thresholds.rds_free_storage_pct needs rds_allocated_storage_gb: the percentage is of allocated storage, which CloudWatch does not publish."
+    }
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_connections" {

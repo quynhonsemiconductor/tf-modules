@@ -24,6 +24,12 @@ variable "alb_arn" {
   description = "Full ALB ARN; the CloudWatch LoadBalancer dimension is derived from it. Empty = skip ALB alarms."
 }
 
+variable "rds_allocated_storage_gb" {
+  type        = number
+  default     = 0
+  description = "Allocated RDS storage in GiB. Only read when thresholds.rds_free_storage_pct > 0; 0 otherwise."
+}
+
 variable "rds_instance_id" {
   type        = string
   default     = ""
@@ -59,7 +65,10 @@ variable "thresholds" {
     alb_latency_min_requests = optional(number, 50)
     rds_cpu_pct              = optional(number, 85)
     rds_free_bytes           = optional(number, 2147483648) # 2 GiB
-    rds_connections          = optional(number, 100)
+    # Percent of rds_allocated_storage_gb. 0 = use rds_free_bytes instead. Set it when the
+    # floor should scale with the volume; it needs rds_allocated_storage_gb.
+    rds_free_storage_pct = optional(number, 0)
+    rds_connections      = optional(number, 100)
     # ── Burstable-instance signals, both OPT-IN (0 = do not create the alarm) ──
     #
     # Deliberately defaulted OFF rather than given a working threshold, which is the
