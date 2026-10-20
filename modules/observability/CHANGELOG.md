@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.0](https://github.com/quynhonsemiconductor/tf-modules/compare/observability-v4.3.0...observability-v4.4.0) (2026-10-20)
+
+
+### Features
+
+* **observability:** alarm rds free storage as percent of allocation ([#174](https://github.com/quynhonsemiconductor/tf-modules/issues/174)) ([d3c624b](https://github.com/quynhonsemiconductor/tf-modules/commit/d3c624b9f785bce3c04599eafd454380dd6982bb))
+
 ## [4.3.0](https://github.com/QNSC-VN/qnsc-tf-modules/compare/observability-v4.2.1...observability-v4.3.0) (2026-08-31)
 
 
