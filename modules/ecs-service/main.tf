@@ -219,7 +219,7 @@ resource "aws_iam_role_policy" "task_secrets" {
 # is why a healthy production stack plans as `3 to add, 0 to change, 3 to destroy` — one
 # add and one destroy per service, api plus worker plus migrator — while nothing is wrong.
 #
-# Measured on rally production 2026-08-18, hours after a successful go-live with the api
+# Measured on rova production 2026-08-18, hours after a successful go-live with the api
 # serving 200s: exactly that plan, and an identical plan from a clean checkout of main,
 # which is how it was confirmed to be pre-existing rather than caused by the change under
 # review.

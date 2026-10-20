@@ -21,7 +21,8 @@ locals {
 
   # Scoped to this product's own secret prefix. The trailing `*` also absorbs the
   # 6-character random suffix Secrets Manager appends to every secret ARN
-  # (`rally/production/cookie-secret-0sHpOW`), which a bare name never matches.
+  # (`rally/production/cookie-secret-0sHpOW` — a legacy physical name; do not rename),
+  # which a bare name never matches.
   secret_arns = "arn:aws:secretsmanager:*:${local.account_id}:secret:${var.product}/*"
 
   # Trust subjects — bound to specific refs/environments, NEVER the whole repo.
