@@ -38,7 +38,7 @@ jobs:
       # Modules carry no backend, so validate resolves providers with
       # `init -backend=false` and needs no cloud credentials. infra cannot do
       # this — its validate needs a real backend and runs beside `tofu plan`.
-      - uses: quynhonsemiconductor/ci/actions/iac-lint@v1
+      - uses: quynhonsemiconductor/ci/actions/iac-lint@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
         with:
           tofu-version: '1.9.1'
           fmt: 'true'
@@ -72,6 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: quynhonsemiconductor/ci/actions/assert-jobs-succeeded@v1
+      - uses: quynhonsemiconductor/ci/actions/assert-jobs-succeeded@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
         with:
           results: ${{ join(needs.*.result, ',') }}
