@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.0](https://github.com/quynhonsemiconductor/tf-modules/compare/rds-v2.3.0...rds-v2.4.0) (2026-10-19)
+
+
+### Features
+
+* **cache:** node_engine_version opt-in is 8.2 (the ElastiCache Valkey 8 line target); ([eb3adfa](https://github.com/quynhonsemiconductor/tf-modules/commit/eb3adfaa7a16ef6c72481a75163928fba6f8ae4f))
+* **rds,cache,product-profile:** opt-in PostgreSQL 18 and Valkey 8.1 engine versions ([#169](https://github.com/quynhonsemiconductor/tf-modules/issues/169)) ([eb3adfa](https://github.com/quynhonsemiconductor/tf-modules/commit/eb3adfaa7a16ef6c72481a75163928fba6f8ae4f))
+
 ## [2.3.0](https://github.com/quynhonsemiconductor/tf-modules/compare/rds-v2.2.0...rds-v2.3.0) (2026-09-16)
 
 

@@ -1,7 +1,7 @@
 # =============================================================================
 # app-bucket — a private, KMS-encrypted S3 bucket for application object storage
 # (user uploads / attachments). Replaces the ~40-line inline block every product
-# hand-rolled in its env stack (rally attachments, opshub uploads).
+# hand-rolled in its env stack (rova attachments, opshub uploads).
 #
 # Always: fully private (public access blocked), SSE-KMS with the platform CMK.
 # Optional: versioning, lifecycle expiration rules, presigned-upload CORS.

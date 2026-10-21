@@ -5,6 +5,11 @@ locals {
   # whose premise is "this environment is serving traffic". See var.environment_idle.
   ecs_services = var.environment_idle ? toset([]) : toset(var.ecs_service_names)
 
+  # Percentage of allocated storage wins over the absolute floor when set. The result is a
+  # threshold fixed at apply time: if storage autoscaling grows the volume, bump
+  # rds_allocated_storage_gb to match or the alarm keeps the old allocation's floor.
+  rds_free_storage_threshold_bytes = var.thresholds.rds_free_storage_pct > 0 ? var.thresholds.rds_free_storage_pct / 100 * var.rds_allocated_storage_gb * 1073741824 : var.thresholds.rds_free_bytes
+
   # TargetGroup CloudWatch dimension is likewise the arn suffix: targetgroup/<name>/<id>.
   # Derived once because both per-target-group alarms below need it.
   tg_dimensions = {
@@ -93,7 +98,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
 # and native, so it needs no Container Insights, which nothing else here reads either.
 #
 # Scoped per TARGET GROUP, not per load balancer, because the ALB is shared across
-# products: a LoadBalancer-only dimension would aggregate rally and opshub into one
+# products: a LoadBalancer-only dimension would aggregate rova and opshub into one
 # number and page the wrong team.
 resource "aws_cloudwatch_metric_alarm" "target_unhealthy" {
   # Guarded on alb_arn like every other ALB alarm here. Without it, `local.alb_suffix`
@@ -136,7 +141,7 @@ resource "aws_cloudwatch_metric_alarm" "target_unhealthy" {
 # things nobody could act on:
 #
 #  1. The ALB is SHARED across products, so a LoadBalancer-only dimension aggregated
-#     rally and opshub into one p95 and named the result after whichever product's
+#     rova and opshub into one p95 and named the result after whichever product's
 #     stack created it. `target_unhealthy` above already scopes per target group for
 #     exactly this reason; latency now matches.
 #
@@ -229,10 +234,21 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   statistic           = "Average"
   period              = 300
   evaluation_periods  = 1
-  threshold           = var.thresholds.rds_free_bytes
+  threshold           = local.rds_free_storage_threshold_bytes
   comparison_operator = "LessThanThreshold"
   alarm_actions       = [aws_sns_topic.alarms.arn]
   tags                = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = var.thresholds.rds_free_storage_pct >= 0 && var.thresholds.rds_free_storage_pct <= 100
+      error_message = "thresholds.rds_free_storage_pct must be between 0 and 100."
+    }
+    precondition {
+      condition     = var.thresholds.rds_free_storage_pct == 0 || var.rds_allocated_storage_gb > 0
+      error_message = "thresholds.rds_free_storage_pct needs rds_allocated_storage_gb: the percentage is of allocated storage, which CloudWatch does not publish."
+    }
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_connections" {
@@ -256,7 +272,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
 # variables.tf for why these default off while every other threshold defaults on.
 #
 # They exist because a burstable instance does not fail, it DEGRADES, and the three
-# alarms above cannot see that. A prod p99-latency page on rally's db.t4g.micro is
+# alarms above cannot see that. A prod p99-latency page on rova's db.t4g.micro is
 # what found this: the runbook in the product's live/main.tf named CPUCreditBalance
 # and FreeableMemory as the first signals to check, but neither had an alarm, so the
 # only thing that fired was the downstream symptom hours after the cause.

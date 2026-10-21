@@ -249,6 +249,7 @@ resource "aws_db_instance" "this" {
 #     /aws/rds/instance/qnsc-kb-develop/postgresql    None   (never expires)
 #     /aws/rds/instance/rally-develop/postgresql      7      (set by hand)
 #     /aws/rds/instance/rally-prod/postgresql         90     (set by hand)
+#     (the rally-* names are legacy physical names; do not rename)
 #
 # Declaring the group here makes RDS write into an existing group rather than create one,
 # so retention is a decision in a diff instead of whatever a console click left behind.

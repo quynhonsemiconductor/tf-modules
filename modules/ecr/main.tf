@@ -52,7 +52,7 @@ resource "aws_ecr_lifecycle_policy" "repos" {
       # matches both rules; ECR applies the rule with the LOWEST rulePriority, which is
       # why the release rule must come first. Confirmed with
       # `aws ecr start-lifecycle-policy-preview`: of 168 images this policy expires on
-      # rally-api, zero carry a release tag.
+      # rally-api (a legacy physical name; do not rename), zero carry a release tag.
       {
         rulePriority = 2
         description  = "Expire release (${var.release_tag_prefix}*) images older than ${var.release_retention_days} days"
