@@ -15,7 +15,7 @@
   "modules/observability-agent": "1.1.0",
   "modules/oneshot-task": "2.0.0",
   "modules/pages-web": "1.0.2",
-  "modules/product-profile": "0.3.0",
+  "modules/product-profile": "0.8.0",
   "modules/rds": "2.4.0",
   "modules/secrets": "2.1.1",
   "modules/tunnel-agent": "1.1.0",
