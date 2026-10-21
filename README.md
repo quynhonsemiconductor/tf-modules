@@ -69,6 +69,13 @@ module "network" {
 }
 ```
 
+> **⚠ `product-profile`: pin `product-profile-v0.9.0` or newer (2026-10-21).**
+> The `v0.2.0`–`v0.8.0` tags were cut from commits dated 2026-09-22/23 (verified:
+> `ec2491f`, `3e8efba`, `29fa5da`, `c1118fe`) while their changelog entries are dated
+> 2026-10-13..20 — the tagged commits do not contain what the changelogs describe.
+> `product-profile-v0.9.0` (cut by release-please after #171) is the first tag whose
+> commit matches its changelog. Existing tags are left untouched; do not pin below 0.9.0.
+>
 > **Pin to a tag** (`?ref=network-v1.1.2`) in committed environments. Use `?ref=main`
 > only for testing on a branch. Upgrades should be deliberate.
 
