@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/quynhonsemiconductor/tf-modules/compare/product-profile-v0.8.0...product-profile-v0.9.0) (2026-10-21)
+
+
+### Features
+
+* **cache:** node_engine_version opt-in is 8.2 (the ElastiCache Valkey 8 line target); ([eb3adfa](https://github.com/quynhonsemiconductor/tf-modules/commit/eb3adfaa7a16ef6c72481a75163928fba6f8ae4f))
+* **rds,cache,product-profile:** opt-in PostgreSQL 18 and Valkey 8.1 engine versions ([#169](https://github.com/quynhonsemiconductor/tf-modules/issues/169)) ([eb3adfa](https://github.com/quynhonsemiconductor/tf-modules/commit/eb3adfaa7a16ef6c72481a75163928fba6f8ae4f))
+
 ## [0.3.0](https://github.com/quynhonsemiconductor/tf-modules/compare/product-profile-v0.2.0...product-profile-v0.3.0) (2026-10-20)
 
 
