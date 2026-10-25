@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   release:
-    uses: quynhonsemiconductor/ci/.github/workflows/release-please.yml@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
+    uses: quynhonsemiconductor/ci/.github/workflows/release-please.yml@0feca69debe06835300c1e28cf14ac5723577a51 # v1.24.0
     with:
       manifest_file: .release-please-manifest.json
     secrets:
