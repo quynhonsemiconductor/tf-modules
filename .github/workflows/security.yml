@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: quynhonsemiconductor/ci/.github/workflows/actions-security.yml@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
+    uses: quynhonsemiconductor/ci/.github/workflows/actions-security.yml@0feca69debe06835300c1e28cf14ac5723577a51 # v1.24.0
     with:
       blocking: true
       combine: true # actionlint + zizmor as ONE job; the required check is `actions-security / Workflow security (actionlint, zizmor)`
@@ -69,7 +69,7 @@ jobs:
       # ENFORCED against a baseline: fails on NEW misconfigurations only. The
       # pre-existing findings are recorded in modules/.checkov.baseline (burn them
       # down over time; regenerate with --create-baseline).
-      - uses: quynhonsemiconductor/ci/actions/iac-checkov@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
+      - uses: quynhonsemiconductor/ci/actions/iac-checkov@0feca69debe06835300c1e28cf14ac5723577a51 # v1.24.0
         with:
           directory: modules/
           soft-fail: 'false'
@@ -85,4 +85,4 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: quynhonsemiconductor/ci/actions/scan-secrets@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
+      - uses: quynhonsemiconductor/ci/actions/scan-secrets@0feca69debe06835300c1e28cf14ac5723577a51 # v1.24.0
