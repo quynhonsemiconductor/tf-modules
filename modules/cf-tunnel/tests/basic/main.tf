@@ -1,7 +1,7 @@
-# Plan-only test root: exercises the tunnel + ingress config shape. NOTE: the
-# `token` output reads a data source from the API at plan time, so this root can
-# only plan against the REAL account (tofu plan with real credentials); with a
-# dummy token it fails at the data read, after resource planning succeeded.
+# Plan-only test root: exercises the tunnel + ingress config shape. The `token`
+# output reads a data source, but the read is deferred: with a placeholder token
+# the plan completes cleanly (3 to add) and only emits 401 dry-run warnings.
+# Run: (cd modules/cf-tunnel/tests/basic && tofu init -backend=false && tofu plan -refresh=false -input=false)
 terraform {
   required_providers {
     cloudflare = { source = "cloudflare/cloudflare", version = "5.28.1" }
