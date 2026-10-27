@@ -1,7 +1,7 @@
 locals {
   # Custom domain is wired only when the domain, its zone, and the record name
   # are all provided — otherwise the SPA is reachable on <name>.pages.dev only.
-  custom_domain_enabled = var.domain != "" && var.zone_id != "" && var.record_name != "" && var.zone_name != ""
+  custom_domain_enabled = var.domain != "" && var.zone_id != "" && var.record_name != ""
 }
 
 # ── Pages project (direct-upload; content pushed by `wrangler pages deploy`) ──
@@ -41,12 +41,11 @@ resource "cloudflare_pages_domain" "this" {
 # ── DNS CNAME → <name>.pages.dev ──────────────────────────────────────────────
 # Pages does NOT create the record for a custom domain, so we own it here.
 # Proxied (orange-cloud) so it's served through Cloudflare's edge + TLS.
-# v5 `name` must be the full FQDN, built here from the bare record_name + zone_name.
 resource "cloudflare_dns_record" "this" {
   count = local.custom_domain_enabled ? 1 : 0
 
   zone_id = var.zone_id
-  name    = "${var.record_name}.${var.zone_name}"
+  name    = var.domain # v5 requires the full FQDN; `domain` already is one
   type    = "CNAME"
   content = cloudflare_pages_project.this.subdomain
   proxied = true

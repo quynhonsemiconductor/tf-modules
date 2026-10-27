@@ -39,13 +39,7 @@ variable "zone_id" {
 variable "record_name" {
   type        = string
   default     = ""
-  description = "DNS record name / subdomain for the custom domain (e.g. \"rova-dev\"). Required when domain is set. Built into the FQDN the v5 dns_record requires, with zone_name."
-}
-
-variable "zone_name" {
-  type        = string
-  default     = ""
-  description = "Cloudflare zone NAME (e.g. \"qnsc.vn\") — required when a custom domain is wired; the v5 dns_record needs the full FQDN, built as record_name + zone_name."
+  description = "DNS record name / subdomain for the custom domain (e.g. \"rova-dev\"). Required when domain is set."
 }
 
 variable "comment" {

@@ -48,12 +48,12 @@ resource "cloudflare_ruleset" "ratelimit" {
     action      = r.action
     enabled     = true
 
-    ratelimit = [{
+    ratelimit = {
       characteristics     = r.characteristics
       period              = r.period
       requests_per_period = r.requests_per_period
       mitigation_timeout  = r.mitigation_timeout
-    }]
+    }
   }]
 }
 

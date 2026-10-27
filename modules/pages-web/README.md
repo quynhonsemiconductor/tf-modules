@@ -48,9 +48,13 @@ Pages **secrets** (a Pages Function's signing key, say) are set out of band, nev
 wrangler pages secret put EDGE_CLIENT_IP_SECRET --project-name "$(tofu output -raw web_pages_project)"
 ```
 
-A value written through Terraform is stored in state in clear text, so the module has no `secrets` input. The project's
-`secrets` are `ignore_changes`, so a secret set by hand is never planned away. A secret applies to NEW deployments only:
-redeploy after setting or rotating one.
+A value written through Terraform is stored in state in clear text, so the module has no `secrets` input.
+
+**v5 drift note:** the v4 provider had a separate `secrets` attribute the module could `ignore_changes` away; v5 has
+none — dashboard-set secrets surface inside the SAME `env_vars` map the module manages, so the out-of-band path can read
+as drift and a careless apply could remove the secret. Set secrets through IaC as an `env_vars` entry with
+`type = "secret_text"` (caller-side) instead of by hand. A secret applies to NEW deployments only: redeploy after
+setting or rotating one.
 
 ## Inputs
 

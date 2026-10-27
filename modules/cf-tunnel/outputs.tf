@@ -15,18 +15,7 @@ output "cname" {
 }
 
 output "token" {
-  value = base64encode(jsonencode({
-    "a" = cloudflare_zero_trust_tunnel_cloudflared.this.account_tag
-    "t" = cloudflare_zero_trust_tunnel_cloudflared.this.id
-    "s" = cloudflare_zero_trust_tunnel_cloudflared.this.tunnel_secret
-  }))
+  value       = data.cloudflare_zero_trust_tunnel_cloudflared_token.this.token
   sensitive   = true
-  description = <<-EOT
-    Connector token — the cloudflared sidecar's TUNNEL_TOKEN. A live credential.
-
-    v5 removed the provider-computed `tunnel_token`; the token is just the
-    Cloudflare-documented JSON envelope {a: account tag, t: tunnel id,
-    s: tunnel secret} base64-encoded, so it is built here from fields the
-    resource still exposes.
-  EOT
+  description = "Connector token — the cloudflared sidecar's TUNNEL_TOKEN. A live credential, read back from the API (correct even for adopted tunnels whose secret is not in state)."
 }

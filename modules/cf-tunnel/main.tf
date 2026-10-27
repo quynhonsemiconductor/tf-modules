@@ -57,6 +57,15 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
   }
 }
 
+# The connector token, read back from the API. v5 dropped the resource's computed
+# `tunnel_token`; a data source is the supported replacement, and — unlike building
+# the envelope from `tunnel_secret` — it stays correct for ADOPTED tunnels, whose
+# real secret is ignored by this module (see the lifecycle block above).
+data "cloudflare_zero_trust_tunnel_cloudflared_token" "this" {
+  account_id = var.account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.this.id
+}
+
 # ── Routing ───────────────────────────────────────────────────────────────────
 # A tunnel with no ingress rule is inert: it connects, reports healthy, and 503s every
 # request. Creating the tunnel without this is the trap the resource above describes.
