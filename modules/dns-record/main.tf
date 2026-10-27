@@ -19,23 +19,25 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
+      version = "~> 5.28"
     }
   }
 }
 
-resource "cloudflare_record" "this" {
+locals {
+  # v5 `name` must be the full FQDN (no bare subdomain, no "@" apex alias),
+  # matching what the API returns — otherwise the provider reads perpetual drift.
+  fqdn = var.name == "@" ? var.zone_name : "${var.name}.${var.zone_name}"
+}
+
+resource "cloudflare_dns_record" "this" {
   count = var.enabled ? 1 : 0
 
   zone_id = var.zone_id
-  name    = var.name
+  name    = local.fqdn
   type    = var.type
   content = var.content
   proxied = var.proxied
   ttl     = var.proxied ? 1 : var.ttl # proxied records must use ttl=1 (automatic)
   comment = var.comment
-
-  # Adopt a pre-existing record (e.g. one orphaned by a `state rm` teardown)
-  # rather than failing the create with "record already exists".
-  allow_overwrite = var.allow_overwrite
 }

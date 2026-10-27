@@ -24,7 +24,7 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
+      version = "~> 5.28"
     }
   }
 }
@@ -41,23 +41,20 @@ resource "cloudflare_ruleset" "ratelimit" {
   kind        = "zone"
   phase       = "http_ratelimit"
 
-  dynamic "rules" {
-    for_each = var.rate_limit_rules
-    content {
-      ref         = rules.value.ref
-      description = rules.value.description
-      expression  = rules.value.expression
-      action      = rules.value.action
-      enabled     = true
+  rules = [for r in var.rate_limit_rules : {
+    ref         = r.ref
+    description = r.description
+    expression  = r.expression
+    action      = r.action
+    enabled     = true
 
-      ratelimit {
-        characteristics     = rules.value.characteristics
-        period              = rules.value.period
-        requests_per_period = rules.value.requests_per_period
-        mitigation_timeout  = rules.value.mitigation_timeout
-      }
+    ratelimit = {
+      characteristics     = r.characteristics
+      period              = r.period
+      requests_per_period = r.requests_per_period
+      mitigation_timeout  = r.mitigation_timeout
     }
-  }
+  }]
 }
 
 # ── Managed WAF (http_request_firewall_managed) — Pro+ only ────────────────────
@@ -73,20 +70,15 @@ resource "cloudflare_ruleset" "managed" {
   kind        = "zone"
   phase       = "http_request_firewall_managed"
 
-  dynamic "rules" {
-    for_each = var.managed_ruleset_ids
-    content {
-      ref         = "execute_${substr(rules.value, 0, 8)}"
-      description = "Execute managed ruleset ${rules.value}"
-      expression  = "true"
-      action      = "execute"
-      enabled     = true
+  rules = [for id in var.managed_ruleset_ids : {
+    ref         = "execute_${substr(id, 0, 8)}"
+    description = "Execute managed ruleset ${id}"
+    expression  = "true"
+    action      = "execute"
+    enabled     = true
 
-      action_parameters {
-        id = rules.value
-      }
-    }
-  }
+    action_parameters = { id = id }
+  }]
 }
 
 # ── Custom firewall rules (http_request_firewall_custom) — free ────────────────
@@ -100,14 +92,11 @@ resource "cloudflare_ruleset" "custom" {
   kind        = "zone"
   phase       = "http_request_firewall_custom"
 
-  dynamic "rules" {
-    for_each = var.custom_firewall_rules
-    content {
-      ref         = rules.value.ref
-      description = rules.value.description
-      expression  = rules.value.expression
-      action      = rules.value.action
-      enabled     = true
-    }
-  }
+  rules = [for r in var.custom_firewall_rules : {
+    ref         = r.ref
+    description = r.description
+    expression  = r.expression
+    action      = r.action
+    enabled     = true
+  }]
 }
