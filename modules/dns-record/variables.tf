@@ -64,5 +64,4 @@ variable "comment" {
 
 # v5 removed `allow_overwrite`: a create against an existing record now fails
 # with "record already exists" instead of adopting it. Adoption after a
-# `state rm` teardown is now an explicit `tofu import` step. (Renamed resource:
-# consumers need `moved` blocks — see the module's changelog.)
+# `state rm` teardown is now `state rm` + `import` — see the module README.

@@ -34,10 +34,10 @@ module "dns_api" {
   zone_id   = data.terraform_remote_state.bootstrap.outputs.cloudflare_zone_id
   zone_name = "qnsc.vn"
   name      = "rova-api-dev"
-  type    = "CNAME"
-  content = data.terraform_remote_state.runtime.outputs.alb_dns_name
-  proxied = false # ALB/CloudFront target — keep grey-cloud
-  comment = "managed by rova-develop"
+  type      = "CNAME"
+  content   = data.terraform_remote_state.runtime.outputs.alb_dns_name
+  proxied   = false # ALB/CloudFront target — keep grey-cloud
+  comment   = "managed by rova-develop"
 }
 ```
 
