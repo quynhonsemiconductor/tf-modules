@@ -15,7 +15,12 @@ variable "zone_id" {
 
 variable "name" {
   type        = string
-  description = "Record name / subdomain (e.g. \"rova-dev\" for rova-dev.qnsc.vn), or \"@\" for the zone apex."
+  description = "Record name / subdomain (e.g. \"rova-dev\" for rova-dev.qnsc.vn), or \"@\" for the zone apex. The v5 provider requires the full FQDN in the resource, which this module builds from `name` + `zone_name`."
+}
+
+variable "zone_name" {
+  type        = string
+  description = "Cloudflare zone NAME (e.g. \"qnsc.vn\") — used to build the FQDN the v5 provider requires. The zone ID stays in `zone_id`."
 }
 
 variable "type" {
@@ -57,13 +62,7 @@ variable "comment" {
   description = "Free-text comment shown in the Cloudflare dashboard (e.g. which stack manages this)."
 }
 
-variable "allow_overwrite" {
-  type        = bool
-  default     = true
-  description = <<-EOT
-    Adopt an existing Cloudflare record of the same name/type on create instead
-    of failing with "record already exists". Defaults to true so a rebuild after
-    a `state rm` teardown (which leaves the live record orphaned) cleanly takes
-    the record over and repoints it, rather than erroring on the create.
-  EOT
-}
+# v5 removed `allow_overwrite`: a create against an existing record now fails
+# with "record already exists" instead of adopting it. Adoption after a
+# `state rm` teardown is now an explicit `tofu import` step. (Renamed resource:
+# consumers need `moved` blocks — see the module's changelog.)

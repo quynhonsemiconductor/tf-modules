@@ -11,8 +11,9 @@
 # out-of-band as the Pages `TURNSTILE_SECRET` env var (never committed, never in
 # app state), matching the platform's "secrets out-of-band" convention.
 #
-# Requires the Cloudflare provider v4 (the schema below is the v4 resource).
-# Instantiate from a v4 stack (e.g. `edge`); bump to v5 when that stack migrates.
+# Requires the Cloudflare provider v5 (pin ~> 5.28, same as the `edge` stack).
+# v5 note: `domains` is a plain list and must stay in ALPHABETICAL order or the
+# provider reads perpetual drift against the API response.
 # =============================================================================
 
 resource "cloudflare_turnstile_widget" "this" {

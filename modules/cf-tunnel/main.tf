@@ -1,10 +1,11 @@
 # Cloudflare Tunnel — created and owned by Terraform.
 #
 # Replaces the "create it in the dashboard and paste the token into a secret" step that
-# every product carried before this module existed. The provider exposes the connector
-# token as a computed attribute, so nothing about a tunnel actually requires a human.
+# every product carried before this module existed. The module owns the tunnel secret,
+# so it can build the connector token itself (see the `token` output) — nothing about a
+# tunnel actually requires a human.
 #
-# WHAT THIS MEANS FOR STATE: `tunnel_token` is a live credential and it WILL be stored
+# WHAT THIS MEANS FOR STATE: the tunnel secret is a live credential and it WILL be stored
 # in Terraform state. That is the trade this module makes. It is acceptable here because
 # the state bucket is KMS-encrypted and readable only by the infra-apply role, which
 # already holds AdministratorAccess — so the token grants nothing that reading the state
@@ -21,9 +22,9 @@ resource "random_id" "secret" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
-  account_id = var.account_id
-  name       = var.name
-  secret     = random_id.secret.b64_std
+  account_id    = var.account_id
+  name          = var.name
+  tunnel_secret = random_id.secret.b64_std
 
   # Defaults to "cloudflare" — routing served to the connector by Cloudflare, which is
   # what the ingress rules below write.
@@ -48,11 +49,11 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
     # that no longer authenticates, and the API is unreachable until the next deploy
     # ships the new one.
     #
-    # Ignoring it makes an import a no-op: the tunnel keeps the secret it already has,
-    # `tunnel_token` is read back as a computed attribute either way, and the resource is
-    # simply adopted. It also means the secret is never rewritten in place for a tunnel
-    # this module created — rotating one is a deliberate replace, not a plan diff.
-    ignore_changes = [secret]
+    # Ignoring it makes an import a no-op: the tunnel keeps the secret it already has
+    # (which the `token` output builds from), and the resource is simply adopted. It also
+    # means the secret is never rewritten in place for a tunnel this module created —
+    # rotating one is a deliberate replace, not a plan diff.
+    ignore_changes = [tunnel_secret]
   }
 }
 
@@ -75,16 +76,13 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "this" {
   account_id = var.account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.this.id
 
-  config {
-    ingress_rule {
-      hostname = var.hostname
-      service  = var.service
-    }
-
-    # Anything that reaches the connector without matching the hostname above is not
-    # traffic this tunnel is for.
-    ingress_rule {
-      service = "http_status:404"
-    }
+  config = {
+    # Anything that reaches the connector without matching the hostname rule is not
+    # traffic this tunnel is for; Cloudflare requires the LAST rule to have no
+    # hostname, and without the catch-all the configuration is rejected.
+    ingress = [
+      { hostname = var.hostname, service = var.service },
+      { service = "http_status:404" },
+    ]
   }
 }
