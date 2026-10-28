@@ -1,0 +1,16 @@
+# Intentionally public names in this repository (leak-guard suppresses a finding
+# when a line below matches its text OR its repository-relative path).
+#
+# Module READMEs and variable defaults document the public dev/product hostnames
+# and the public VPC subnet layout — examples a reader needs to use the modules.
+# Emails: the public security contact and the ops alias.
+security@qnsc\.vn
+oncall@qnsc\.vn
+www\.qnsc\.vn
+rova-dev\.qnsc\.vn
+rova-api-dev\.qnsc\.vn
+rova-api\.qnsc\.vn
+rova-assets\.qnsc\.vn
+opshub-dev\.qnsc\.vn
+kb-api-dev\.qnsc\.vn
+10\.40\.\d{1,3}\.0
