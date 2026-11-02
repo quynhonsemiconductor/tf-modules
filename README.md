@@ -23,18 +23,15 @@ use. Bump a consumer by changing its `?ref=<module>-vX.Y.Z`.
 
 | Module | Latest | Pin | Purpose |
 | :----- | :----- | :-- | :------ |
-| [`network`](modules/network) | `v1.1.2` | `network-v1.1.2` | VPC, 3-tier subnets, NAT (gateway or fck-nat instance), SGs, VPC endpoints (toggleable), flow logs |
 | [`rds`](modules/rds) | `v1.1.0` | `rds-v1.1.0` | PostgreSQL, RDS-managed password, Perf Insights, param group, enhanced monitoring |
 | [`cache`](modules/cache) | `v1.0.0` | `cache-v1.0.0` | Valkey ElastiCache: serverless (prod) or node (dev cost mode) |
 | [`ecs-cluster`](modules/ecs-cluster) | `v1.0.0` | `ecs-cluster-v1.0.0` | ECS cluster + Fargate capacity providers + Container Insights |
 | [`ecs-service`](modules/ecs-service) | `v1.1.0` | `ecs-service-v1.1.0` | Fargate service: task def, IAM, ALB, circuit breaker, CPU+mem autoscaling |
 | [`ecr`](modules/ecr) | `v1.1.0` | `ecr-v1.1.0` | ECR repositories + lifecycle + optional repo policy |
-| [`alb`](modules/alb) | `v1.0.0` | `alb-v1.0.0` | Application Load Balancer: HTTPS listener, TLS policy, 80→443 redirect |
 | [`messaging`](modules/messaging) | `v1.0.0` | `messaging-v1.0.0` | Data-driven SQS (DLQs) + SNS topics + subscriptions |
 | [`app-bucket`](modules/app-bucket) | `v1.0.0` | `app-bucket-v1.0.0` | Private KMS-encrypted S3 bucket (app uploads) with TLS-only policy |
 | [`pages-web`](modules/pages-web) | `v1.0.0` | `pages-web-v1.0.0` | Cloudflare Pages project + custom domain (SPA hosting — replaced S3+CloudFront) |
 | [`dns-record`](modules/dns-record) | `v1.0.0` | `dns-record-v1.0.0` | Single Cloudflare DNS record (proxied-aware) |
-| [`cf-tunnel`](modules/cf-tunnel) | `v0.1.1` | `cf-tunnel-v0.1.1` | Cloudflare Tunnel + connector token (replaces creating one by hand) |
 
 ### Security & access
 
@@ -42,8 +39,6 @@ use. Bump a consumer by changing its `?ref=<module>-vX.Y.Z`.
 | :----- | :----- | :-- | :------ |
 | [`iam-oidc`](modules/iam-oidc) | `v3.0.1` | `iam-oidc-v3.0.1` | GitHub OIDC deploy roles (per-env, ecr-push, infra plan/apply, apply guardrail) |
 | [`secrets`](modules/secrets) | `v1.0.0` | `secrets-v1.0.0` | Secrets Manager (empty secrets) + SSM Parameter Store |
-| [`waf`](modules/waf) | `v1.1.0` | `waf-v1.1.0` | WAFv2: managed rules + rate limit + logging (REGIONAL/ALB or CLOUDFRONT scope) |
-| [`alb-logs`](modules/alb-logs) | `v1.0.0` | `alb-logs-v1.0.0` | S3 bucket + policy for ALB access logs (prod forensics) |
 
 ### Operations & cost
 
@@ -63,8 +58,8 @@ use. Bump a consumer by changing its `?ref=<module>-vX.Y.Z`.
 Reference a module by git source pinned to a **per-module version tag**:
 
 ```hcl
-module "network" {
-  source = "git::https://github.com/quynhonsemiconductor/tf-modules.git//modules/network?ref=network-v1.1.2"
+module "dns_record" {
+  source = "git::https://github.com/quynhonsemiconductor/tf-modules.git//modules/dns-record?ref=dns-record-v1.0.0"
   # ... inputs
 }
 ```
@@ -76,7 +71,7 @@ module "network" {
 > `product-profile-v0.9.0` (cut by release-please after #171) is the first tag whose
 > commit matches its changelog. Existing tags are left untouched; do not pin below 0.9.0.
 >
-> **Pin to a tag** (`?ref=network-v1.1.2`) in committed environments. Use `?ref=main`
+> **Pin to a tag** (`?ref=dns-record-v1.0.0`) in committed environments. Use `?ref=main`
 > only for testing on a branch. Upgrades should be deliberate.
 
 ---
@@ -84,11 +79,11 @@ module "network" {
 ## Versioning
 
 Each module is versioned **independently** with a prefixed tag:
-`network-v1.1.2`, `ecs-service-v1.1.0`, etc. This lets a product adopt a new `network`
+`dns-record-v1.0.0`, `ecs-service-v1.1.0`, etc. This lets a product adopt a new `dns-record`
 without being forced to take a new `rds`.
 
-- Backward-compatible additions → minor bump (`network-v1.2.0`)
-- Breaking input/output changes → major bump (`network-v2.0.0`)
+- Backward-compatible additions → minor bump (`dns-record-v1.1.0`)
+- Breaking input/output changes → major bump (`dns-record-v2.0.0`)
 
 ---
 

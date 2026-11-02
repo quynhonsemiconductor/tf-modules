@@ -1,6 +1,4 @@
 {
-  "modules/alb": "1.0.1",
-  "modules/alb-logs": "1.0.1",
   "modules/app-bucket": "1.0.1",
   "modules/cache": "1.2.0",
   "modules/cf-edge": "2.0.0",
@@ -10,7 +8,6 @@
   "modules/ecs-service": "2.5.0",
   "modules/iam-oidc": "3.0.1",
   "modules/messaging": "1.1.0",
-  "modules/network": "1.4.0",
   "modules/observability": "4.4.0",
   "modules/observability-agent": "1.1.0",
   "modules/oneshot-task": "2.0.0",
@@ -18,11 +15,6 @@
   "modules/product-profile": "0.9.0",
   "modules/rds": "2.4.0",
   "modules/secrets": "2.1.1",
-  "modules/tunnel-agent": "2.0.0",
-  "modules/waf": "1.1.1",
   "modules/cf-r2": "2.0.0",
-  "modules/cloudflare-turnstile": "2.0.0",
-  "modules/cf-tunnel": "1.0.0",
-  "modules/firelens-agent": "0.2.2",
-  "modules/observability-alerts": "1.1.1"
+  "modules/cloudflare-turnstile": "2.0.0"
 }

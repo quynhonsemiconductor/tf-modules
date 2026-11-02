@@ -5,12 +5,6 @@
   "tag-separator": "-",
   "separate-pull-requests": false,
   "packages": {
-    "modules/alb": {
-      "component": "alb"
-    },
-    "modules/alb-logs": {
-      "component": "alb-logs"
-    },
     "modules/app-bucket": {
       "component": "app-bucket"
     },
@@ -22,9 +16,6 @@
     },
     "modules/cf-r2": {
       "component": "cf-r2"
-    },
-    "modules/cf-tunnel": {
-      "component": "cf-tunnel"
     },
     "modules/cloudflare-turnstile": {
       "component": "cloudflare-turnstile"
@@ -47,20 +38,11 @@
     "modules/messaging": {
       "component": "messaging"
     },
-    "modules/network": {
-      "component": "network"
-    },
     "modules/observability": {
       "component": "observability"
     },
-    "modules/firelens-agent": {
-      "component": "firelens-agent"
-    },
     "modules/observability-agent": {
       "component": "observability-agent"
-    },
-    "modules/observability-alerts": {
-      "component": "observability-alerts"
     },
     "modules/oneshot-task": {
       "component": "oneshot-task"
@@ -76,12 +58,6 @@
     },
     "modules/secrets": {
       "component": "secrets"
-    },
-    "modules/tunnel-agent": {
-      "component": "tunnel-agent"
-    },
-    "modules/waf": {
-      "component": "waf"
     }
   }
 }
