@@ -5,12 +5,6 @@
   "tag-separator": "-",
   "separate-pull-requests": false,
   "packages": {
-    "modules/app-bucket": {
-      "component": "app-bucket"
-    },
-    "modules/cache": {
-      "component": "cache"
-    },
     "modules/cf-edge": {
       "component": "cf-edge"
     },
@@ -23,41 +17,11 @@
     "modules/dns-record": {
       "component": "dns-record"
     },
-    "modules/ecr": {
-      "component": "ecr"
-    },
-    "modules/ecs-cluster": {
-      "component": "ecs-cluster"
-    },
-    "modules/ecs-service": {
-      "component": "ecs-service"
-    },
-    "modules/iam-oidc": {
-      "component": "iam-oidc"
-    },
-    "modules/messaging": {
-      "component": "messaging"
-    },
-    "modules/observability": {
-      "component": "observability"
-    },
     "modules/observability-agent": {
       "component": "observability-agent"
     },
-    "modules/oneshot-task": {
-      "component": "oneshot-task"
-    },
     "modules/pages-web": {
       "component": "pages-web"
-    },
-    "modules/product-profile": {
-      "component": "product-profile"
-    },
-    "modules/rds": {
-      "component": "rds"
-    },
-    "modules/secrets": {
-      "component": "secrets"
     }
   }
 }
