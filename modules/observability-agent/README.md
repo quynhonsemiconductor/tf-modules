@@ -6,7 +6,14 @@ creates no infrastructure of its own.
 The app exports to `http://127.0.0.1:4318` through the task's shared network
 namespace — no service discovery, no cross-AZ hop, no extra security group.
 
-## Usage
+## Status: legacy ECS path
+
+The AWS platform was retired on 2026-11-02 and `ecs-service` was deleted with it, so the
+example below no longer resolves. The module is kept only until the last ECS-era consumer is
+gone; the on-prem estate runs the collector in-cluster, not as a task sidecar. Do not add a
+new consumer.
+
+## Usage (historical)
 
 ```hcl
 module "otel_agent" {
